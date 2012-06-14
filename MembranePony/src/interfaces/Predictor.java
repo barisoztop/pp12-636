@@ -2,6 +2,6 @@ package interfaces;
 
 public interface Predictor {
 
-	public void predict(String sequence);
+	public void predict(Position[] sequence);
 	
 }
