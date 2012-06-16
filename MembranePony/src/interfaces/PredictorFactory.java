@@ -7,5 +7,6 @@ public interface PredictorFactory {
 	 * @return
 	 */
 	public Predictor getInstance();
-	
+
+        public void setRangeForMappingContinousValuesToNodes(double range);
 }
