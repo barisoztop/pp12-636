@@ -2,8 +2,9 @@ package interfaces;
 
 public interface Position {
 
-	public char getAminoAcid();
-	public double getHydrophobicit();
-	public char getSecondaryStructure();
-	
+	public String getAminoAcid();
+	public double getHydrophobicity();
+	public String getSecondaryStructure();
+        public Result getResult();
+
 }
