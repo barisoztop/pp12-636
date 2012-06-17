@@ -1,6 +1,6 @@
 package interfaces;
 
-public interface Position {
+public interface SequencePosition {
 
 	public String getAminoAcid();
 	public double getHydrophobicity();

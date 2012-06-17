@@ -1,7 +1,7 @@
 package interfaces;
 
 /**
- * Result of a {@link Predictor} run.
+ * Result of a {@link Predictor} run. Add any statistics we may want to have.
  *
  */
 public interface Prediction {
@@ -10,7 +10,7 @@ public interface Prediction {
 	 * 
 	 * @return the protein sequence that the prediction pertains to
 	 */
-	public String getInputSequence();
+	public Sequence getInputSequence();
 	
 	/**
 	 * 
