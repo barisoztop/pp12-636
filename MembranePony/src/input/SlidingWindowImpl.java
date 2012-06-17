@@ -6,29 +6,28 @@ import interfaces.SlidingWindow;
 
 public class SlidingWindowImpl implements SlidingWindow {
 
-	private SequencePosition[] sequence;
-	private Sequence parentSequence;
-	private int index;
+    private SequencePosition[] sequence;
+    private Sequence parentSequence;
+    private int index;
 
-	public SlidingWindowImpl(Sequence parentSequence, int index, SequencePosition[] sequence) {
-		this.parentSequence = parentSequence;
-		this.index = index;
-		this.sequence = sequence;
-	}
-	
-	@Override
-	public int getWindowIndex() {
-		return index;
-	}
+    public SlidingWindowImpl(Sequence parentSequence, int index, SequencePosition[] sequence) {
+        this.parentSequence = parentSequence;
+        this.index = index;
+        this.sequence = sequence;
+    }
 
-	@Override
-	public SequencePosition[] getSequence() {
-		return sequence;
-	}
+    @Override
+    public int getWindowIndex() {
+        return index;
+    }
 
-	@Override
-	public Sequence getParentSequence() {
-		return parentSequence;
-	}
+    @Override
+    public SequencePosition[] getSequence() {
+        return sequence;
+    }
 
+    @Override
+    public Sequence getParentSequence() {
+        return parentSequence;
+    }
 }

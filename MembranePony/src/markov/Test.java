@@ -4,6 +4,7 @@
  */
 package markov;
 
+import input.RandomSequenceGenerator;
 import markov.layout.Markov;
 
 /**
@@ -16,5 +17,6 @@ public class Test {
         Markov m = new Markov();
         System.out.println("vertex: "+m.getGraph().vertexSet().size());
         System.out.println("edges: "+m.getGraph().edgeSet().size());
+        m.train(RandomSequenceGenerator.generate(10));
     }
 }
