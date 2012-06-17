@@ -1,12 +1,13 @@
 package markov.layout;
 
-import data.Aminoacids;
-import data.SecondaryStructures;
-import interfaces.Position;
 import interfaces.Predictor;
+import interfaces.Sequence;
+import interfaces.TestTrainingCase;
 import markov.graph.Edge;
 import markov.graph.Graph;
 import markov.graph.Vertex;
+import data.Aminoacids;
+import data.SecondaryStructures;
 
 /**
  *
@@ -82,16 +83,16 @@ public class Markov implements Predictor {
     }
 
     @Override
-    public void predict(Position[] sequence) {
+    public void predict(Sequence sequence) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void train(Position[] sequence) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void train(TestTrainingCase[] trainingCases) {
+    	throw new UnsupportedOperationException("Not supported yet.");
+
     }
 
-    @Override
     public void setMappingContValuesToNodes(double range) {
         rangeContValuesToNodes = range;
     }
