@@ -1,6 +1,6 @@
 package input;
 
-import interfaces.Constants;
+import data.Constants;
 import interfaces.Sequence;
 import interfaces.SequencePosition;
 import interfaces.SlidingWindow;
@@ -52,4 +52,9 @@ public class SequenceImpl implements Sequence {
 		return result;
 	}
 
+	
+	@Override
+	public String toString() {
+		return "Sequence [id="+id+", len="+sequence.length+"]";
+	}
 }

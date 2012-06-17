@@ -10,12 +10,12 @@ import java.util.HashMap;
  */
 public class Hydrophobicity {
 
-    public static final int KYTE_DOOLITTLE = 0, HOPP_WOODS = 1, CORNETTE = 2, EISENBERG = 3, ROSE = 4, JANIN = 5, ENGELMAN = 6;
+    public static final int KYTE_DOOLITTLE = 0, HOPP_WOODS = 1, CORNETTE = 2, EISENBERG = 3, /*ROSE = 4,*/ JANIN = 4, ENGELMAN = 5;
     private static HashMap<String, Double> kyteDoolittle = new HashMap<String, Double>();
     private static HashMap<String, Double> hoppWoods = new HashMap<String, Double>();
     private static HashMap<String, Double> cornette = new HashMap<String, Double>();
     private static HashMap<String, Double> eisenberg = new HashMap<String, Double>();
-    private static HashMap<String, Double> rose = new HashMap<String, Double>();
+//    private static HashMap<String, Double> rose = new HashMap<String, Double>();
     private static HashMap<String, Double> janin = new HashMap<String, Double>();
     private static HashMap<String, Double> engelman = new HashMap<String, Double>();
 
@@ -155,8 +155,8 @@ public class Hydrophobicity {
      * @throws NullPointerException for invalid amino acid
      * @throws RuntimeException for invalid scale
      */
-    public static double get(char aminoacid, int scale) {
-        String aa = ("" + aminoacid).toUpperCase();
+    public static double get(AminoAcid aminoAcid, int scale) {
+        String aa = aminoAcid.toString();
 
         if (scale == KYTE_DOOLITTLE) {
             return kyteDoolittle.get(aa);
@@ -166,8 +166,8 @@ public class Hydrophobicity {
             return cornette.get(aa);
         } else if (scale == EISENBERG) {
             return eisenberg.get(aa);
-        } else if (scale == ROSE) {
-            return rose.get(aa);
+//        } else if (scale == ROSE) {
+//            return rose.get(aa);
         } else if (scale == JANIN) {
             return janin.get(aa);
         } else if (scale == ENGELMAN) {
