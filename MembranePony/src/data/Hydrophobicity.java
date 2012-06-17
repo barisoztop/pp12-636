@@ -1,6 +1,5 @@
 package data;
 
-
 import java.util.HashMap;
 
 /**
@@ -10,7 +9,9 @@ import java.util.HashMap;
  */
 public class Hydrophobicity {
 
-    public static final int KYTE_DOOLITTLE = 0, HOPP_WOODS = 1, CORNETTE = 2, EISENBERG = 3, /*ROSE = 4,*/ JANIN = 4, ENGELMAN = 5;
+    public static final int KYTE_DOOLITTLE = 0, HOPP_WOODS = 1, CORNETTE = 2, EISENBERG = 3, /*
+             * ROSE = 4,
+             */ JANIN = 4, ENGELMAN = 5;
     private static HashMap<String, Double> kyteDoolittle = new HashMap<String, Double>();
     private static HashMap<String, Double> hoppWoods = new HashMap<String, Double>();
     private static HashMap<String, Double> cornette = new HashMap<String, Double>();
@@ -175,5 +176,46 @@ public class Hydrophobicity {
         } else {
             throw (new RuntimeException("Invalid Scale"));
         }
+    }
+
+    /**
+     * returns an double array with min max value of the given scale
+     *
+     * @param scale KYTE_DOOLITTLE, HOPP_WOODS etc. constants
+     * @return double[2] of min|max
+     * @throws RuntimeException for invalid scale
+     */
+    public static double[] getMinMax(int scale) {
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        HashMap<String, Double> tmp;
+
+        if (scale == KYTE_DOOLITTLE) {
+            tmp = kyteDoolittle;
+        } else if (scale == HOPP_WOODS) {
+            tmp = hoppWoods;
+        } else if (scale == CORNETTE) {
+            tmp = cornette;
+        } else if (scale == EISENBERG) {
+            tmp = eisenberg;
+//        } else if (scale == ROSE) {
+//            return rose.get(aa);
+        } else if (scale == JANIN) {
+            tmp = janin;
+        } else if (scale == ENGELMAN) {
+            tmp = engelman;
+        } else {
+            throw (new RuntimeException("Invalid Scale"));
+        }
+
+        for (Double d : tmp.values()) {
+            if (d > max) {
+                max = d;
+            }
+            if (d < min) {
+                min = d;
+            }
+        }
+        return new double[] {min, max};
     }
 }
