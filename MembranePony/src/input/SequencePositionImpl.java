@@ -10,11 +10,13 @@ public class SequencePositionImpl implements SequencePosition {
 	private SSE sse;
 	private double hydrophobicity;
 	private AminoAcid aa;
+	private int hydrophobicityMatrix;
 
-	public SequencePositionImpl(AminoAcid aa, double hydrophobicity, SSE sse) {
+	public SequencePositionImpl(AminoAcid aa, double hydrophobicity, SSE sse, int hydrophobicityMatrix) {
 		this.aa = aa;
 		this.hydrophobicity = hydrophobicity;
 		this.sse = sse;
+		this.hydrophobicityMatrix = hydrophobicityMatrix;
 	}
 	
 	
@@ -33,5 +35,16 @@ public class SequencePositionImpl implements SequencePosition {
 		return sse;
 	}
 
+
+	@Override
+	public int getHydrophobicityMatrix() {
+		return hydrophobicityMatrix;
+	}
+
+	
+	@Override
+	public String toString() {
+		return "("+aa+", "+sse+", hydrop="+hydrophobicity+"/scale="+hydrophobicityMatrix+")";
+	}
 
 }

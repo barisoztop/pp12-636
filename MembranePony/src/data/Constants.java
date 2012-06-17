@@ -1,5 +1,5 @@
 
-package interfaces;
+package data;
 
 public class Constants {
 	public static final int WINDOW_LENGTH = 21;
