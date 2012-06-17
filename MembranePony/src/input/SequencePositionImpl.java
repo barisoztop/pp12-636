@@ -1,5 +1,6 @@
 package input;
 
+import interfaces.Result;
 import interfaces.SequencePosition;
 import data.AminoAcid;
 import data.SSE;
@@ -11,6 +12,8 @@ public class SequencePositionImpl implements SequencePosition {
 	private double hydrophobicity;
 	private AminoAcid aa;
 	private int hydrophobicityMatrix;
+	
+	private Result realClass = null;
 
 	public SequencePositionImpl(AminoAcid aa, double hydrophobicity, SSE sse, int hydrophobicityMatrix) {
 		this.aa = aa;
@@ -18,6 +21,13 @@ public class SequencePositionImpl implements SequencePosition {
 		this.sse = sse;
 		this.hydrophobicityMatrix = hydrophobicityMatrix;
 	}
+	
+
+	public SequencePositionImpl(AminoAcid aa, double hydrophobicity, SSE sse, int hydrophobicityMatrix, Result realClass) {
+		this(aa, hydrophobicity, sse, hydrophobicityMatrix);
+		this.realClass = realClass;
+	}
+	
 	
 	
 	@Override
@@ -44,7 +54,13 @@ public class SequencePositionImpl implements SequencePosition {
 	
 	@Override
 	public String toString() {
-		return "("+aa+", "+sse+", hydrop="+hydrophobicity+"/scale="+hydrophobicityMatrix+")";
+		return "("+aa+", "+sse+", hp="+hydrophobicity+", hpscale="+hydrophobicityMatrix+(realClass==null ? "" : ", "+realClass )+")";
+	}
+
+
+	@Override
+	public Result getRealClass() {
+		return realClass ;
 	}
 
 }

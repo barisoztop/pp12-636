@@ -1,5 +1,6 @@
 package input;
 
+import interfaces.Result;
 import interfaces.Sequence;
 import interfaces.SequencePosition;
 
@@ -33,6 +34,8 @@ public class RandomSequenceGenerator {
 
 		SSE[] sses = SSE.values();
 
+		Result[] classes = Result.values();
+		
 		Random ralf = new Random();
 
 		int scale = ralf.nextInt(6);
@@ -55,7 +58,9 @@ public class RandomSequenceGenerator {
 
 				SSE sse = sses[ralf.nextInt(sses.length)]; 
 
-				SequencePositionImpl seqPos = new SequencePositionImpl(aa, hydrophobicity, sse, scale);
+				Result realClass = classes[ralf.nextInt(classes.length)];
+				
+				SequencePositionImpl seqPos = new SequencePositionImpl(aa, hydrophobicity, sse, scale, realClass);
 
 				seqPosArr[i] = seqPos;
 			}
@@ -68,4 +73,6 @@ public class RandomSequenceGenerator {
 		return result;
 	}
 
+	
+	
 }
