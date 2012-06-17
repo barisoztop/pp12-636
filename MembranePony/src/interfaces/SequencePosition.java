@@ -16,5 +16,12 @@ public interface SequencePosition {
 	 * used to generate the hydroph. value for this position
 	 */
 	public int getHydrophobicityMatrix();
+	
+	/**
+	 * 
+	 * @return the class the residue really belongs to (in reality, that is, in experimental
+	 * data and such); may be null if unknown
+	 */
+	public Result getRealClass();
 
 }
