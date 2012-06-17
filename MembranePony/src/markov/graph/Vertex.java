@@ -1,5 +1,7 @@
 package markov.graph;
 
+import data.AminoAcid;
+import data.SSE;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,27 +14,36 @@ import java.util.logging.Logger;
 public class Vertex {
 
     private static final Logger logger = Logger.getLogger(Vertex.class.getSimpleName());
-    private final String aminoacid;
-    private final String sse;
+    private String aminoacid;
+    private String sse;
     private final Double hydrophobocity;
     private final int windowPos;
     private final String id;
 
     public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
-        if (!aminoacid.isEmpty() && sse == null && hydrophobocity == null && windowPos == -1) {
-            this.aminoacid = aminoacid;
+        this.aminoacid = aminoacid.intern();
+        String tmp = aminoacid;
+        if (sse == null) {
             this.sse = null;
-            this.hydrophobocity = null;
-            this.windowPos = -1;
-            id = aminoacid;
-            logger.log(Level.INFO, "created: {0}", id);
         } else {
-            this.aminoacid = aminoacid.intern();
             this.sse = sse.intern();
-            this.hydrophobocity = hydrophobocity;
-            this.windowPos = windowPos;
-            id = aminoacid + "-" + sse + "-" + hydrophobocity + "@" + windowPos;
+            tmp += "_sse:" + this.sse;
         }
+        if (hydrophobocity == null) {
+            this.hydrophobocity = null;
+        } else {
+            this.hydrophobocity = hydrophobocity;
+            tmp += "_hp:" + this.hydrophobocity;
+        }
+        if (windowPos == -1) {
+            this.windowPos = -1;
+        } else {
+            this.windowPos = windowPos;
+            tmp += "@" + windowPos;
+        }
+        id = tmp;
+
+//        logger.log(Level.INFO, "created vertex: {0}", id);
     }
 
     @Override
