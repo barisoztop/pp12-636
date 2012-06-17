@@ -1,10 +1,12 @@
 package interfaces;
 
+import data.AminoAcid;
+import data.SSE;
+
 public interface SequencePosition {
 
-	public String getAminoAcid();
+	public AminoAcid getAminoAcid();
 	public double getHydrophobicity();
-	public String getSecondaryStructure();
-        public Result getResult();
+	public SSE getSecondaryStructure();
 
 }

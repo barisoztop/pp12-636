@@ -7,7 +7,7 @@ import markov.graph.Edge;
 import markov.graph.Graph;
 import markov.graph.Vertex;
 import data.Aminoacids;
-import data.SecondaryStructures;
+import data.SSE;
 
 /**
  *
@@ -38,7 +38,7 @@ public class Markov implements Predictor {
         markov.addVertex(INSIDE);
 //        int hydro = (int) ((hydrophobocityMax - hydrophobocityMin) / rangeContValuesToNodes);
 //        matrix = new Vertex[aminoacids.length * secondaryStructures.length * hydro][sizeSlidingWindow]; //[rows][columns]
-        matrix = new Vertex[Aminoacids.get().length * SecondaryStructures.get().length][sizeSlidingWindow]; //[rows][columns]
+        matrix = new Vertex[Aminoacids.get().length * SSE.get().length][sizeSlidingWindow]; //[rows][columns]
         addVertices();
         addEdges();
     }
@@ -47,11 +47,11 @@ public class Markov implements Predictor {
         //create nodes and add them to the graph
         for (int windowPos = 0; windowPos < sizeSlidingWindow; windowPos++) {
             int row = 0;
-            for (int sse = 0; sse < SecondaryStructures.get().length; sse++) {
+            for (int sse = 0; sse < SSE.get().length; sse++) {
                 for (int aa = 0; aa < Aminoacids.get().length; aa++) {
 //                    for (double hydrophobocity = hydrophobocityMin; hydrophobocity <= hydrophobocityMax; hydrophobocity += rangeContValuesToNodes) {
 //                        Vertex tmp = new Vertex(aminoacids[aa], secondaryStructures[sse], hydrophobocity, windowPos);
-                    Vertex tmp = new Vertex(Aminoacids.get()[aa], SecondaryStructures.get()[sse], 0d, windowPos);
+                    Vertex tmp = new Vertex(Aminoacids.get()[aa], SSE.get()[sse], 0d, windowPos);
                     markov.addVertex(tmp);
                     matrix[row][windowPos] = tmp;
                     row++;
