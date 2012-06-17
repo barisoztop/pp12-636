@@ -76,13 +76,16 @@ public class Mss {
      * Calculates the most scoring subsequence(es)
      *
      * @param seq a string containing a amino acid primary sequence
+     * @param countMss max number of mss's inside list which will be returned, of course
+     * if they exists
      * @return a linked list of points saving start and end of most scoring
      * subsequences if there are mss with the same max score they will saved
      * into the list, if there is only one mss, so there will be just one entry
      * in the list
      */
-    public LinkedList<Point> mss(String seq) {
-
+    
+    public LinkedList<Point> mss(String seq, int countMss){
+     
         LinkedList<Point> mssGetStartEndPoints = new LinkedList<Point>();
 
         float max = 0, rmax = 0;
@@ -107,33 +110,60 @@ public class Mss {
 
             } else {
 
-                rmax = mapAAsOntoHydrophobicity.get(String.valueOf(pseq[i]));
-                rstart = i;
+
+                rmax = mapAAsOntoHydrophobicity.get(String.valueOf(pseq[i]));        
+                rstart = i;      
 
             }
 
             if (rmax > max) {
+                
                 max = rmax;
                 l = rstart;
                 r = i;
 
-                //TODO what if there are two parts, one most ss and one almost ss
-                //that could happen if one protein crosses the membrane twice
-                //think about a clever way to save the mss and all others who
-                //score almost high like the mss
+                if(mssGetStartEndPoints.isEmpty() || mssGetStartEndPoints.size()<=countMss){
+                    mssGetStartEndPoints.add(new Point(l,r));
+                }
+                
+                if(mssGetStartEndPoints.size()>countMss){
+                   
+                    mssGetStartEndPoints.add(new Point(l, r));
+                    findAndRemoveMinimum(mssGetStartEndPoints);                    
+                }
+
             }
         }
-
-        mssGetStartEndPoints.add(new Point(l, r));
-
+        
         return mssGetStartEndPoints;
     }
 
+    /**
+     * 
+     * @param points 
+     */
+    private static void findAndRemoveMinimum(LinkedList<Point> points){
+        
+        int minimum = Integer.MIN_VALUE;
+        Point pMinimum = null;
+        
+        for(Point p : points){
+            
+            if(((int) p.getY() - (int) p.getX()) < minimum){
+                minimum = (int) p.getY() - (int) p.getX();
+                pMinimum = p;
+            }         
+        }
+        
+        points.remove(pMinimum);
+    }
+    
     /**
      * For testing purpose only
      *
      * @param args
      */
     public static void main(String[] args) {
+        
     }
 }
