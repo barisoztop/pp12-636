@@ -14,10 +14,15 @@ public class RandomSequenceGenerator {
 
 	
 	public static void main(String[] args) {
-		String seqs = Arrays.toString(generate(10));
+		Sequence[] seqs = generate(10);
 		
-		System.out.println("Generated "+seqs.length()+" sequences:");
-		System.out.println(seqs);
+		System.out.println("Generated "+seqs.length+" sequences:");
+		System.out.println(Arrays.toString(seqs));
+		
+		System.out.println();
+		
+		for(Sequence seq : seqs)
+			System.out.println(seq.getId()+"\t=>\t"+Arrays.toString(seq.getSequence()));
 	}
 	
 	
