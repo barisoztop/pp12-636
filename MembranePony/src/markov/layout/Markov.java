@@ -2,10 +2,12 @@ package markov.layout;
 
 import data.*;
 import interfaces.Predictor;
+import interfaces.Result;
 import interfaces.Sequence;
 import interfaces.SequencePosition;
 import interfaces.SlidingWindow;
-import java.math.BigDecimal;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import markov.graph.Edge;
 import markov.graph.Graph;
 import markov.graph.Vertex;
@@ -16,81 +18,87 @@ import markov.graph.Vertex;
  */
 public class Markov implements Predictor {
 
-    private final Graph<Vertex, Edge> markov;
-    private double[] hpMatrixMinMax;
-    private int hpAllSteps;
+    private static final Logger logger = Logger.getLogger(Markov.class.getSimpleName());
+    private final Graph<Vertex, Edge> ideetler;
+//    private double[] hpMatrixMinMax;
     private double hpSteppingValue = 0.1d;
+    private double hpRoundingValue = 10d;
     private int hpscaleUsed = -1;
+    private static final double HP_MIN = -5.0d;
+    private static final double HP_MAX = 6.0d;
     private Vertex[][] matrix;
 //    private final Vertex TMH_TRUE = new Vertex("TMH_TRUE", null, null, -1);
 //    private final Vertex TMH_FALSE = new Vertex("TMH_FALSE", null, null, -1);
-    private final Vertex TMH = new Vertex("TMH", null, null, -1);
-    private final Vertex OUTSIDE = new Vertex("OUTSIDE", null, null, -1);
-    private final Vertex INSIDE = new Vertex("INSIDE", null, null, -1);
+    public final Vertex TMH = new Vertex("TMH", null, null, -1);
+    public final Vertex OUTSIDE = new Vertex("OUTSIDE", null, null, -1);
+    public final Vertex INSIDE = new Vertex("INSIDE", null, null, -1);
 
     public Markov() {
-        markov = new Graph<Vertex, Edge>(Edge.class);
-        markov.addVertex(TMH);
-        markov.addVertex(OUTSIDE);
-        markov.addVertex(INSIDE);
-        for (int i = 0; i < Constants.WINDOW_LENGTH; i++) {
-            Vertex NULL = new Vertex("NULL", null, null, i);
-            markov.addVertex(NULL);
-        }
-//        matrix = new Vertex[Aminoacids.get().length * SSE.get().length][Constants.WINDOW_LENGTH]; //[rows][columns]
+        logger.info("Spawning new Markov Instance");
+        ideetler = new Graph<Vertex, Edge>(Edge.class);
+        ideetler.addVertex(TMH);
+        ideetler.addVertex(OUTSIDE);
+        ideetler.addVertex(INSIDE);
+        int hpSteps = (int) ((HP_MAX - HP_MIN) / hpSteppingValue) + 1;
+        matrix = new Vertex[AminoAcid.values().length * SSE.values().length * hpSteps][Constants.WINDOW_LENGTH]; //[rows][columns]
+        addVertices();
     }
 
     private void addVertices() {
-        System.out.println("addVertices:start");
+        long start = System.currentTimeMillis();
+        logger.info("creating vertices..");
         //create nodes and add them to the graph
         for (int windowPos = 0; windowPos < matrix[0].length; windowPos++) {
             //windowPos = the position of the vertex in the markov model [0 - (Constants.WINDOW_LENGTH - 1))
             int row = 0;
             for (int sse = 0; sse < SSE.values().length; sse++) {
                 //sse = the secondary structure of all available at SSE.values()
-                String value_sse = SSE.values()[sse].toString();
+                String value_sse = SSE.values()[sse].toString().intern();
                 for (int aa = 0; aa < AminoAcid.values().length; aa++) {
                     //aa = the aminoacid of all available at AminoAcid.values()
-                    String value_aa = AminoAcid.values()[aa].toString();
-//                    for (int hp = 0; hp < hpAllSteps; hp++) {
-//                        //hp = the hydrophobocity value from min to max
-//                        double value_hp = (hpMatrixMinMax[0] + (double) hp * hpSteppingValue);
-//                        Vertex tmp = new Vertex(value_aa, value_sse, value_hp, windowPos);
-                        Vertex tmp = new Vertex(value_aa, value_sse, 0d, windowPos);
-                        markov.addVertex(tmp);
+                    String value_aa = AminoAcid.values()[aa].toString().intern();
+                    double value_hp = HP_MIN;
+                    while (value_hp < HP_MAX) {
+                        //hp = the hydrophobocity value from min to max
+                        Vertex tmp = new Vertex(value_aa, value_sse, round(value_hp), windowPos);
+                        logger.log(Level.FINE, "created vertex: {0}", tmp);
+                        value_hp += hpSteppingValue;
+                        ideetler.addVertex(tmp);
                         matrix[row][windowPos] = tmp;
                         row++;
-//                    }
+                    }
                 }
             }
         }
-        System.out.println("addVertices: end");
+        long end = System.currentTimeMillis();
+        logger.log(Level.INFO, "..finished. {0} vertices in {1} ms", new Object[]{ideetler.vertexSet().size(), end-start});
     }
 
-    private double round3(double value) {
-        double result = value * 1000;
+    private double round(double value) {
+        double result = value * hpRoundingValue;
         result = Math.round(result);
-        result = result / 1000;
+        result = result / hpRoundingValue;
         return result;
     }
 
+    @Deprecated
     private void addEdges() {
         System.out.println("addEdges:start");
-        for (Vertex source : markov.vertexSet()) {
+        for (Vertex source : ideetler.vertexSet()) {
             if (source.equals(TMH) || source.equals(OUTSIDE) || source.equals(INSIDE)) {
                 continue;
             }
             int posSource = source.getWindowPos();
             if (posSource == (matrix[0].length - 1)) {
                 //add edges from source to TMH, OUTSIDE, INSIDE (endvertex)
-                markov.addEdge(source, TMH);
-                markov.addEdge(source, OUTSIDE);
-                markov.addEdge(source, INSIDE);
+                ideetler.addEdge(source, TMH);
+                ideetler.addEdge(source, OUTSIDE);
+                ideetler.addEdge(source, INSIDE);
             } else {
                 //add edges from source (windowPos) to target (windowPos+1)
                 for (int r = 0; r < matrix.length; r++) {
                     Vertex target = matrix[r][posSource + 1];
-                    markov.addEdge(source, target);
+                    ideetler.addEdge(source, target);
                 }
             }
         }
@@ -99,33 +107,97 @@ public class Markov implements Predictor {
 
     @Override
     public void predict(Sequence sequence) {
+        checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
+
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void train(Sequence[] trainingCases) {
+        long start = System.currentTimeMillis();
+        logger.info("training sequences..");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
-//        matrix = new Vertex[AminoAcid.values().length * SSE.values().length * hpAllSteps][Constants.WINDOW_LENGTH]; //[rows][columns]
-        matrix = new Vertex[AminoAcid.values().length * SSE.values().length][Constants.WINDOW_LENGTH]; //[rows][columns]
-        addVertices();
-        addEdges();
+        int middle = (Constants.WINDOW_LENGTH / 2);
         for (Sequence sequence : trainingCases) {
             for (SlidingWindow slidingWindow : sequence.getWindows()) {
-                for (SequencePosition sequencePosition : slidingWindow.getSequence()) {
-                    sequencePosition.
+                Vertex vertexMiddle = null;
+                SequencePosition spMiddle = null;
+
+                for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+                    SequencePosition spSource = slidingWindow.getSequence()[i];
+                    SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+
+                    //source
+                    if (spSource == null) {
+                        //spSource is more important, because it holds always the middle
+                        //because we are going from left to right inside the window..
+                        continue;
+                    }
+                    String sourceAa = spSource.getAminoAcid().toString().intern();
+                    String sourceSse = spSource.getSecondaryStructure().toString().intern();
+                    Double sourceHp = round(spSource.getHydrophobicity());
+                    Vertex vertexSource = new Vertex(sourceAa, sourceSse, sourceHp, i);
+
+                    //check if vertex source is in the middle of the window
+                    //if yes -> backup
+                    if (i == middle) {
+                        vertexMiddle = vertexSource;
+                        spMiddle = spSource;
+                    }
+
+                    //target
+                    if (spTarget != null) {
+                        //if null, just ignore the lame target
+                        String targetAa = spTarget.getAminoAcid().toString().intern();
+                        String targetSse = spTarget.getSecondaryStructure().toString().intern();
+                        Double targetHp = round(spTarget.getHydrophobicity());
+                        Vertex vertexTarget = new Vertex(targetAa, targetSse, targetHp, i + 1);
+
+                        //link the source and target vertices
+                        checkEdge(vertexSource, null, vertexTarget, false);
+                    }
                 }
+                //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
+                logger.log(Level.FINE, "SequencePosition: middle {0}", spMiddle);
+                checkEdge(vertexMiddle, spMiddle, null, true);
             }
         }
+        long end = System.currentTimeMillis();
+        logger.log(Level.INFO, "..finished. {0} sequences in {1} ms", new Object[]{trainingCases.length, end-start});
+    }
 
-
+    private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
+        if (middle) {
+            Result result = spSource.getRealClass();
+            if (result.equals(Result.INSIDE)) {
+                target = INSIDE;
+            } else if (result.equals(Result.OUTSIDE)) {
+                target = OUTSIDE;
+            } else if (result.equals(Result.TMH)) {
+                target = TMH;
+            }
+        }
+        Edge edge = ideetler.getEdge(source, target);
+        if (edge == null) {
+            if (!ideetler.containsVertex(source)) {
+                logger.log(Level.SEVERE, "vertex source NOT contained: {0}", source);
+            }
+            if (!ideetler.containsVertex(target)) {
+                logger.log(Level.SEVERE, "vertex target NOT contained: {0}", target);
+            }
+            ideetler.addEdge(source, target);
+        } else {
+            ideetler.setEdgeWeight(edge, (ideetler.getEdgeWeight(edge) + 1));
+        }
     }
 
     public void setMappingContValuesToNodes(double range) {
         hpSteppingValue = range;
+        hpRoundingValue = 1 / range;
     }
 
     public Graph getGraph() {
-        return markov;
+        return ideetler;
     }
 
     /**
@@ -137,10 +209,9 @@ public class Markov implements Predictor {
     private void checkScale(int scale) {
         if (hpscaleUsed == -1) {
             hpscaleUsed = scale;
-            hpMatrixMinMax = Hydrophobicity.getMinMax(hpscaleUsed);
-            hpAllSteps = (int) ((hpMatrixMinMax[1] - hpMatrixMinMax[0]) / hpSteppingValue);
-            System.out.println("hp: min: "+hpMatrixMinMax[0]+" max: "+hpMatrixMinMax[1]+" hpSteppingValue: "+hpSteppingValue+ "-> hpAllSteps: "+hpAllSteps);
-
+//            hpMatrixMinMax = Hydrophobicity.getMinMax(hpscaleUsed);
+//
+//            System.out.println("hp: min: "+hpMatrixMinMax[0]+" max: "+hpMatrixMinMax[1]+" hpSteppingValue: "+hpSteppingValue+ "-> hpAllSteps: "+hpAllSteps);
         } else if (hpscaleUsed != scale) {
             throw new VerifyError("Hydrophobocity scale has changed during test/train! Create new Instance of class!");
         }
