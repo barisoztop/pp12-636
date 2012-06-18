@@ -22,24 +22,24 @@ public class Vertex {
 
     public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
         this.aminoacid = aminoacid.intern();
-        String tmp = aminoacid;
+        String tmp = "aa:"+this.aminoacid;
         if (sse == null) {
             this.sse = null;
         } else {
             this.sse = sse.intern();
-            tmp += "_sse:" + this.sse;
+            tmp += "|sse:" + this.sse;
         }
         if (hydrophobocity == null) {
             this.hydrophobocity = null;
         } else {
             this.hydrophobocity = hydrophobocity;
-            tmp += "_hp:" + this.hydrophobocity;
+            tmp += "|hp:" + this.hydrophobocity;
         }
         if (windowPos == -1) {
             this.windowPos = -1;
         } else {
             this.windowPos = windowPos;
-            tmp += "@" + windowPos;
+            tmp += "|@" + windowPos;
         }
         id = tmp;
 
