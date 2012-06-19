@@ -15,7 +15,7 @@ public class Mss {
      * Calculates the maximum scoring subsequence of a given amino acid sequence
      * @param seq the amino acid sequence in which mss's should be found
      * @param countMss the maximum number of mss's in the list which will be returned
-     * @return 
+     * @return the countMss number of most scoring subsequences
      */
     public static LinkedList<Point> mss(AminoAcid[] seq, int countMss){
      
