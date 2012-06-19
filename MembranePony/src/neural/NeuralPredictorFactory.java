@@ -24,6 +24,7 @@ public class NeuralPredictorFactory implements PredictorFactory{
             
             if(this.configuration){
                 
+                //used for training
                 return new NeuralPredictor(path, this.inputNeurons, this.outputNeurons);
             
             }else{
@@ -33,6 +34,7 @@ public class NeuralPredictorFactory implements PredictorFactory{
             
         }else if(task == NeuralTask.PREDICTION){
             
+            //used for prediction
             return new NeuralPredictor(path);
         
         }else{
