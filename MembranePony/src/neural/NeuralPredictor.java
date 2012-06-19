@@ -11,7 +11,7 @@ import org.neuroph.nnet.Perceptron;
  * 
  * @author tobias
  */
-public class NeuralPredictor implements Predictor{
+public class NeuralPredictor implements  Predictor{
     
     private String pathToSavedNeuralNetwork;
     private NeuralNetwork neuralNetwork;
@@ -34,6 +34,8 @@ public class NeuralPredictor implements Predictor{
         
         //maybe here we could use a different subclass, 
         //eg maatrix multilayer perceptron, adaline, etc...
+        //here all input data n should be mapped onto a single perceptron
+        //returning 1 for TMH and 0 for non TMH
         this.neuralNetwork = new Perceptron(inputNeurons, outputNeurons);
     }
     
@@ -60,6 +62,8 @@ public class NeuralPredictor implements Predictor{
             throw new IllegalStateException("Instance was created for Training."
                     + "Prediction is not possible at the moment.");
         }
+        
+        
     }
 
     @Override
