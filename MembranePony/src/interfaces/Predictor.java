@@ -16,8 +16,9 @@ public interface Predictor {
 		 * you usually don't have {@link Result} class values in the {@link SequencePosition} objects here.
 		 * 
 		 * @param sequence
+		 * @returns Prediction
 		 */
-		public void predict(Sequence sequence);
+		public Prediction predict(Sequence sequence);
 
 		//TODO review your code! this has changed
 		/**

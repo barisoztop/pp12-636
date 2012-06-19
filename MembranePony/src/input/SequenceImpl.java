@@ -57,4 +57,9 @@ public class SequenceImpl implements Sequence {
     public String toString() {
         return "Sequence [id=" + id + ", len=" + sequence.length + "]";
     }
+    
+    @Override
+    public int length() {
+    	return sequence.length;
+    }
 }
