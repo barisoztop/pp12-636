@@ -70,22 +70,88 @@ public class NeuralPredictor implements Predictor{
                     + "Training is not possible at the moment.");
         }
         
-        TrainingSet<SupervisedTrainingElement> trainingSet = new TrainingSet<SupervisedTrainingElement>(this.inputN, this.outputN);
-        
         //first check if values of training cases corresond to configuration of network
         
+        //create a training set
+        System.out.println("Generating training set...");
         
+        TrainingSet<SupervisedTrainingElement> trainingSet = new TrainingSet<SupervisedTrainingElement>(this.inputN, this.outputN);
+        
+        long a = System.currentTimeMillis();
+        
+        generateTrainingSet(trainingCases, trainingSet);
+        
+        long b = System.currentTimeMillis();
+        
+        System.out.println("Training set generated. This took "+(b-a)+" milliseconds.");
+        
+        //train the network
+        System.out.println("Training the network...");
+        
+        a = System.currentTimeMillis();
+        
+        this.neuralNetwork.learn(trainingSet);
+        
+        b = System.currentTimeMillis();
+        
+        System.out.println("Network trained. This took "+(b-a)+" milliseconds.");
+        
+        System.out.println("Saving network...");
+        
+        try{
+            this.neuralNetwork.save(this.pathToSavedNeuralNetwork);
+        }catch(Exception ex){
+            System.out.println("Neural Network could not be saved to path "+this.pathToSavedNeuralNetwork);
+        }
+        
+        System.out.println("Network saved to "+this.pathToSavedNeuralNetwork);
     }
     
+    /**
+     * Returns the actual neural network
+     * @return 
+     */
     public NeuralNetwork getNeuralNetWork(){
         return this.neuralNetwork;
     }
     
+    /**
+     * Returns the output of the neurtal network after prediction 
+     * @return 
+     */
     public double[] getNNOutput(){
-        return this.neuralNetwork.getOutput();
+        if(task == NeuralTask.PREDICTION){
+            
+            return this.neuralNetwork.getOutput();
+        
+        }else{
+            
+            throw new IllegalStateException("Output of NN cannot be delivered in training mode.");
+        }
     }
     
+    /**
+     * Returns the file path to the neural network on hard disk
+     * @return 
+     */
     public String getPathToSavedNeuralNetwork(){
         return this.pathToSavedNeuralNetwork;
+    }
+    
+    /**
+     * Generates a training set 
+     * @param trainingCases
+     * @param trainingSet 
+     */
+    private void generateTrainingSet(Sequence[] trainingCases, TrainingSet<SupervisedTrainingElement> trainingSet){
+        
+    }
+    
+    /**
+     * Checks if the configuration of the neural network matches the training cases
+     * @param trainingCases 
+     */
+    private void checkIfConfigurationMatchesData(Sequence[] trainingCases){
+        
     }
 }
