@@ -1,4 +1,4 @@
-package maximum_scoring_subsequence;
+package mss;
 
 import data.AminoAcid;
 import data.Hydrophobicity;
@@ -14,10 +14,10 @@ public class Mss {
     /**
      * Calculates the maximum scoring subsequence of a given amino acid sequence
      * @param seq the amino acid sequence in which mss's should be found
-     * @param countMss the maximum number of mss's in the list which will be returned
-     * @return the countMss number of most scoring subsequences
+     * @param n the maximum number of mss's in the list which will be returned
+     * @return a list of n mss's
      */
-    public static LinkedList<Point> mss(AminoAcid[] seq, int countMss){
+    public static LinkedList<Point> mss(AminoAcid[] seq, int n){
      
         LinkedList<Point> mssGetStartEndPoints = new LinkedList<Point>();
 
@@ -43,11 +43,11 @@ public class Mss {
                 l = rstart;
                 r = i;
 
-                if(mssGetStartEndPoints.isEmpty() || mssGetStartEndPoints.size()<=countMss){
+                if(mssGetStartEndPoints.isEmpty() || mssGetStartEndPoints.size()<=n){
                     mssGetStartEndPoints.add(new Point(l,r));
                 }
                 
-                if(mssGetStartEndPoints.size()>countMss){
+                if(mssGetStartEndPoints.size()>n){
                    
                     mssGetStartEndPoints.add(new Point(l, r));
                     findAndRemoveMinimum(mssGetStartEndPoints);                    
