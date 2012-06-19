@@ -38,4 +38,6 @@ public interface Sequence {
 	 */
 	public SlidingWindow[] getWindows();
 	
+	public int length();
+	
 }

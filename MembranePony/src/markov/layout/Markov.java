@@ -1,16 +1,21 @@
 package markov.layout;
 
-import data.*;
+import interfaces.Prediction;
 import interfaces.Predictor;
 import interfaces.Result;
 import interfaces.Sequence;
 import interfaces.SequencePosition;
 import interfaces.SlidingWindow;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import markov.graph.Edge;
 import markov.graph.Graph;
 import markov.graph.Vertex;
+import data.AminoAcid;
+import data.Constants;
+import data.SSE;
 
 /**
  *
@@ -106,7 +111,7 @@ public class Markov implements Predictor {
     }
 
     @Override
-    public void predict(Sequence sequence) {
+    public Prediction predict(Sequence sequence) {
         checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
 
         throw new UnsupportedOperationException("Not supported yet.");

@@ -34,19 +34,19 @@ public class DataReader {
 			
 			String seq = readFasta(f.getAbsolutePath()+File.separator+"query.in");
 						
-			System.out.println("sequence         "+seq);
-			System.out.println("sequence.len     "+seq.length());
+			System.out.println("|- sequence         "+seq);
+			System.out.println("|- sequence.len     "+seq.length());
 			
 			String sse = readProfRdb(f.getAbsolutePath()+File.separator+"query.profRdb", seq);
 			
-			System.out.println("sse              "+sse);
-			System.out.println("sse.len          "+sse.length());
+			System.out.println("|- sse              "+sse);
+			System.out.println("|- sse.len          "+sse.length());
 			
-			String realClass = fetchUniprotClassification(id);
+			String realClass = fetchUniprotClassification(id, seq);
 			
-			System.out.println("classes          "+realClass);
-			System.out.println("classes.len      "+realClass.length());
-			System.out.println();
+			System.out.println("|- classes          "+realClass);
+			System.out.println("|- classes.len      "+realClass.length());
+			System.out.println("*");
 			System.out.println();
 		}
 		
@@ -103,11 +103,11 @@ public class DataReader {
 	}
 	
 	
-	private static String fetchUniprotClassification(String id) throws IOException {
+	private static String fetchUniprotClassification(String id, String sequence) throws IOException {
 		String urlString = "http://www.uniprot.org/uniprot/"+id+".txt";
 		
 		String uniprot = readFromURL(urlString);
-		
+//		System.out.println(uniprot);
 		StringBuilder result = new StringBuilder();
 		
 		char curClass = '?';
@@ -163,6 +163,30 @@ public class DataReader {
 				
 			}
 		}
+		
+		String seq = "";
+		for(int i=0; i<lines.length; i++) {
+			if(lines[i].startsWith("SQ")) {
+				i++;
+				
+				while(i<lines.length && !lines[i].startsWith("//")) {
+					seq += lines[i];
+					i++;
+				}
+				
+				seq = seq.replaceAll("\\s", "");
+			}
+		}
+		
+		if(!seq.equals(sequence)) {
+			System.err.println("WARNING: SEQUENCE FROM UNIPROT DOES NOT MATCH FASTA SEQ");
+			System.err.println("Uniprot sequence:");
+			System.err.println(seq);
+			System.err.println("FASTA sequence:");
+			System.err.println(sequence);
+			System.err.println("Id: "+id);
+		}
+		
 		
 		return result.toString();
 	}
