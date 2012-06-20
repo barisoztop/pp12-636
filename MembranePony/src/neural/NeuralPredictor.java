@@ -57,14 +57,14 @@ public class NeuralPredictor implements  Predictor{
     }
 
     @Override
-    public void predict(Sequence sequence) {
+    public Prediction predict(Sequence sequence) {
 
         if(task != NeuralTask.PREDICTION){
             throw new IllegalStateException("Instance was created for Training."
                     + "Prediction is not possible at the moment.");
         }
 
-
+        return null;
     }
 
     @Override
@@ -159,5 +159,4 @@ public class NeuralPredictor implements  Predictor{
     private void checkIfConfigurationMatchesData(Sequence[] trainingCases){
 
     }
-
 }
