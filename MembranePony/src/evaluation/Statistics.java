@@ -1,5 +1,7 @@
 package evaluation;
 
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+
 
 /**
  * stores true/false positive/negative counts for a single sequence, a set of sequences, whatever you want.
@@ -41,10 +43,37 @@ public class Statistics {
 	}
 	
 	
+	//the actual statistics
 	
-	//TODO add methods for recall, f-measure, precision, quartiles?
+	/**
+	 * true positive rate; fraction of all elements that should have been classified positive and actually were.<p>
+	 * true positives / (true positives + false negatives)
+	 *  
+	 * @return
+	 */
+	public double getRecall() {
+		return (double)truePositives/(double)(truePositives+falseNegatives);
+	}
 	
-
+	/**
+	 * Fraction of elements that were correctly classified as positive from all that were classified positive.<p>
+	 * true positives / (true positives + false positives)
+	 * @return
+	 */
+	public double getPrecision() {
+		return (double)truePositives/(double)(truePositives+falsePositives);
+	}
+	
+	/**
+	 * fraction of those elements correctly classified as negative from all that were classified negative.<p>
+	 * true negatives / (true negatives + false positives)
+	 * @return
+	 */
+	public double getSpecificity() {
+		return (double)trueNegatives/(double)(trueNegatives+falsePositives);
+	}
+	
+	
 	
 	//convenience methods for incrementing individual counters by 1
 
