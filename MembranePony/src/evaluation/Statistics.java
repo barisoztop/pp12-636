@@ -73,6 +73,14 @@ public class Statistics {
 		return (double)trueNegatives/(double)(trueNegatives+falsePositives);
 	}
 	
+	/**
+	 * weighted average of precision and recall.<p>
+	 * 2 * (precision*recall) / (precision+recall)
+	 * @return
+	 */
+	public double getFMeasure() {
+		return 2d*(double)(getPrecision()*getRecall())/(double)(getPrecision()+getRecall());
+	}
 	
 	
 	//convenience methods for incrementing individual counters by 1
