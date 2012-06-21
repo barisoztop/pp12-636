@@ -15,6 +15,11 @@ public enum Result {
 	/**
 	 * inside transmembrane helix
 	 */
-	TMH;
+	TMH,
+	
+	
+	NON_TMH;
+	
+	
 	
 }

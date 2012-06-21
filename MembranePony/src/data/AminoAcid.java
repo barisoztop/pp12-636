@@ -21,6 +21,7 @@ public enum AminoAcid {
 	        T, //thr -> threonin
 	        V, //val -> valin
 	        W, //trp -> tryptophan
-	        Y //tyr -> tyrosin
+	        Y, //tyr -> tyrosin
+	        X  //any
 	        
 }

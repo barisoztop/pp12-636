@@ -42,6 +42,17 @@ public class EvaluationRun {
 	}
 	
 	
+	@Override
+	public String toString() {
+		String s ="EvaluationRun [\n";
+		s+="  TMH     => "+getRunStatisticsTMH()+"\n";
+		s+="  Outside => "+getRunStatisticsOutside()+"\n";
+		s+="  Inside  => "+getRunStatisticsInside()+"\n";
+		s+="]";
+		return s;
+	}
+	
+	
 	/**
 	 * 
 	 * @return results for all sequences that were logged with this object (usually all elements of the test set), complete

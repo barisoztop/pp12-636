@@ -1,77 +1,186 @@
 package input;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
+import input.ReadStruct.Struct;
+import interfaces.Result;
+import interfaces.Sequence;
+import interfaces.SequencePosition;
+
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedList;
+
+import org.apache.log4j.Logger;
+
+import data.AminoAcid;
+import data.Hydrophobicity;
+import data.SSE;
 
 
+
+/**
+ * reads the dataset for training and testing.<p>
+ * currently works for impOutput only, no solubles
+ * 
+ * @author Felix
+ *
+ */
 public class DataReader {
 	
 	
+	/*
+	 * The type of REGION can be 1, 2, B, H, C, I, L and U for 
+	 * Side1, Side2, Beta-strand, alpha-helix, coil, membrane-inside, 
+	 * membrane-loop and unknown localizations, respectively. Side1 
+	 * and Side2 refers to the two sides of the membrane (we do not 
+	 * know which is inside or outside using the information only from 
+	 * the pdb file). Membrane-inside is the inside part of a beta 
+	 * barrel. Membrane- loop correspond to a region of the polypeptide 
+	 * chain which does not cross the membrane, just dips into the 
+	 * membrane (for example in aquaporins or potassium-channels).
+	 */
+	
+	
+	private static Logger logger = Logger.getLogger(DataReader.class);
+	
+	
 	public static void main(String[] args) throws IOException {
+		File dataFolder = new File("N:\\temp\\ppdata\\dataset\\impOutput");
+		File structFile = new File("N:\\temp\\ppdata\\dataset\\imp_struct.fasta");
+		int table = Hydrophobicity.KYTE_DOOLITTLE;
 		
-		//list subfolders in data folder
-		//for each:
-		//new sequence
-		//read .in file
-		//parse sse
-		//fetch uniprot file
-		//combine everything
+		readSequences(dataFolder, structFile, table);
+	}
+	
+	
+	/**
+	 * 
+	 * @param dataFolder either solOutput or impOutput folder
+	 * @param structFile the imp_struct.fasta file
+	 * @param hydrophobiticyTable what table to use for hydrophobicity ({@link Hydrophobicity}.*)
+	 * @return a Sequence object for each protein found in the given folder
+	 * 
+	 * @throws IOException
+	 */
+	public static Sequence[] readSequences(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
 		
-		File dataFolder = new File("N:\\temp\\ppdata");
+		logger.debug("readSequences dataFolder=>"+dataFolder+" structFile=>"+structFile+" hydroTab=>"+hydrophobiticyTable);
+		
+		
+		LinkedList<Sequence> sequences = new LinkedList<Sequence>();
+		
+		
+		Struct[] structs = ReadStruct.readStructFile(structFile);
+				
+		HashMap<String,Struct> structsMap = new HashMap<String, ReadStruct.Struct>();
+		
+		for(Struct s : structs)
+			structsMap.put(s.id, s);
+		
+		logger.info("Read "+structs.length+" Structs from file.");
+		
+		int processed = 0;
 		
 		for(File f : dataFolder.listFiles()) {
-			if(!f.isDirectory()) continue;
-			
-			String id = f.getName();
-			
-			System.out.println(id);
-			
-			String seq = readFasta(f.getAbsolutePath()+File.separator+"query.in");
+			try {
+				if(!f.isDirectory()) continue;
+				
+				processed++;
+
+				
+				String id = f.getName();
+
+				logger.info("Reading sequence "+id+"...");
+
+				Struct struct = structsMap.get(id);
+				if(struct==null)
+					logger.warn("NO STRUCT FOR ID="+id);
+				
+				String wholeseq = struct.wholeSequence;
+				logger.debug("|- whole seq        "+wholeseq);
+				
+				String wholesse = readProfRdb(f.getAbsolutePath()+File.separator+"query.profRdb", wholeseq);
+				logger.debug("|- whole sse        "+wholesse);
+				
+				if(wholeseq.length()!=wholesse.length())
+					throw(new IllegalStateException("Whole sequence length differs from whole sse length ("+
+							wholeseq.length()+" <> "+wholesse.length()+")"));
+				
+				String seq = struct.sequence; 
 						
-			System.out.println("|- sequence         "+seq);
-			System.out.println("|- sequence.len     "+seq.length());
-			
-			String sse = readProfRdb(f.getAbsolutePath()+File.separator+"query.profRdb", seq);
-			
-			System.out.println("|- sse              "+sse);
-			System.out.println("|- sse.len          "+sse.length());
-			
-			String realClass = fetchUniprotClassification(id, seq);
-			
-			System.out.println("|- classes          "+realClass);
-			System.out.println("|- classes.len      "+realClass.length());
-			System.out.println("*");
-			System.out.println();
+				String temp = "";
+				temp +=  "|- seq              ";
+				for(int i=0; i<struct.startOffset; i++) temp += ".";
+				temp += seq;
+				for(int i=1; i<wholeseq.length()-struct.endOffset; i++) temp += ".";
+				logger.debug(temp);
+				
+				temp = "";
+				
+				String sse = wholesse.substring(struct.startOffset, struct.endOffset+1);
+				
+				temp +=  "|- sse              ";
+				for(int i=0; i<struct.startOffset; i++) temp += ".";
+				temp += sse;
+				for(int i=1; i<wholeseq.length()-struct.endOffset; i++) temp += ".";
+				logger.debug(temp);
+				
+				
+				
+				logger.debug("|- whole seq.len    "+wholeseq.length());
+				logger.debug("|- whole sse.len    "+wholesse.length());
+				logger.debug("|- seq.len          "+seq.length());
+				logger.debug("|- sse.len          "+sse.length());
+				
+				
+				if(seq.length()!=sse.length())
+					throw(new IllegalStateException("Sequence length differs from sse length ("+seq.length()+" <> "+sse.length()+")"));
+				
+				
+				SequencePosition[] seqpos = new SequencePosition[seq.length()];
+				for(int i=0; i<seq.length(); i++) {
+					if(seq.charAt(i)==' ') {
+						logger.trace("CHAR SPACE "+i+" => "+seq);
+						continue;
+					}
+					
+					if(seq.charAt(i)=='X') {
+						logger.trace("CHAR X "+i+" => "+seq);
+						continue;
+					}
+											
+					AminoAcid aa = AminoAcid.valueOf(seq.charAt(i)+"");
+					SSE secstr = SSE.forProfRdb(sse.charAt(i));
+					double hydrophobicity = Hydrophobicity.get(aa, hydrophobiticyTable);
+					Result realClass = struct.realClasses[i];
+					
+					seqpos[i] = new SequencePositionImpl(aa, hydrophobicity, secstr, hydrophobiticyTable, realClass);
+				}
+								
+				Sequence s = new SequenceImpl(id, seqpos);
+				sequences.add(s);
+				
+				logger.info("Sequence object for "+id+" built successfully.");
+				
+				
+				
+			}catch(Exception e) {e.printStackTrace();}
 		}
 		
+		logger.info("Processed directories: "+processed);
+		
+		return sequences.toArray(new Sequence[]{});
+		
 	}
 	
+		
 	
-	private static String readFasta(String path) throws IOException {
-		String fasta = readFile(path);
-		
-		String[] lines = fasta.split("\n");
-		StringBuilder sb = new StringBuilder();
-		for(String line : lines)
-			if(!line.startsWith(">"))
-				sb.append(line.trim());
-		
-		return sb.toString();
-	}
+
 	
 	private static String readProfRdb(String path, String sequence) throws IOException {
-		String profrdb = readFile(path);
+		String profrdb = Helpers.readFile(path);
 		
 		String[] lines = profrdb.split("\n");
-		
-//		for(String line : lines) 
-//			if(line.startsWith("No")) System.out.println(line);
 		
 		String seq = "";
 		String sses = "";
@@ -87,7 +196,6 @@ public class DataReader {
 			String pred = cols[3];
 			sses+=pred;
 			
-//			System.out.println(aa+"\t=>\t"+pred);
 		}
 		
 		if(!seq.equals(sequence)) {
@@ -103,136 +211,112 @@ public class DataReader {
 	}
 	
 	
-	private static String fetchUniprotClassification(String id, String sequence) throws IOException {
-		String urlString = "http://www.uniprot.org/uniprot/"+id+".txt";
-		
-		String uniprot = readFromURL(urlString);
-//		System.out.println(uniprot);
-		StringBuilder result = new StringBuilder();
-		
-		char curClass = '?';
-		int curStart = -1;
-		
-		String[] lines = uniprot.split("\n");
-		for(String line : lines) {
-			if(line.startsWith("FT")) {
-				String[] cols = line.toLowerCase().split("\\s+");
-				
-				if(cols.length<4)
-					continue;
-				
-//				if(cols[1].equals("chain"))
-				if(!cols[1].equals("topo_dom") && !cols[1].equals("transmem"))
-					continue;
-				
-				int start, end;
-				try {
-					//corrected for first index 0
-					start = Integer.parseInt(cols[2]) - 1 ;
-					end = Integer.parseInt(cols[3]) - 1 ;
-				}
-				catch(NumberFormatException e) {
-					continue;
-				}
-				
-//				System.out.println(Arrays.toString(cols));
-				
-				if(curStart == -1) curStart = start;
-				
-				char cls = '?';
-				if(cols.length>=5) {
-					if(cols[4].contains("cytoplasmic"))
-						cls = 'I';
-					else if(cols[1].contains("transmem"))
-						cls = 'T';
-					else if(cols[4].contains("extracellular"))
-						cls = 'O';
-				}
-				
-				if(cls!=curClass && cls!='?') {
-					curClass = cls;
-				}
-				
-//				System.out.println("CLASS="+curClass);
-				for(int i=0; i<=end-start; i++) {
-//					System.out.print(curClass);
-					result.append(curClass);
-				}
-//				System.out.println();
-				
-				
-			}
-		}
-		
-		String seq = "";
-		for(int i=0; i<lines.length; i++) {
-			if(lines[i].startsWith("SQ")) {
-				i++;
-				
-				while(i<lines.length && !lines[i].startsWith("//")) {
-					seq += lines[i];
-					i++;
-				}
-				
-				seq = seq.replaceAll("\\s", "");
-			}
-		}
-		
-		if(!seq.equals(sequence)) {
-			System.err.println("WARNING: SEQUENCE FROM UNIPROT DOES NOT MATCH FASTA SEQ");
-			System.err.println("Uniprot sequence:");
-			System.err.println(seq);
-			System.err.println("FASTA sequence:");
-			System.err.println(sequence);
-			System.err.println("Id: "+id);
-		}
-		
-		
-		return result.toString();
-	}
 	
 	
-	private static String readFile(String path) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		
-		StringBuilder sb = new StringBuilder();
-		
-		int c;
-		while( (c = br.read() ) != -1 )
-			sb.append((char)c);
-		
-		return sb.toString();
-		
-	}
 	
 	
-	private static String readFromURL(String urlString) throws IOException {
-		URL url;
-		InputStream is = null;
-		DataInputStream dis;
-		String line;
-
-		StringBuilder result = new StringBuilder();
-		
-		try {
-		    url = new URL(urlString);
-		    is = url.openStream();
-		    dis = new DataInputStream(new BufferedInputStream(is));
-		    
-		    int c;
-		    
-		    while ((c = dis.read()) != -1) {
-		        result.append((char)c);		        
-		    }
-
-		} finally {
-		    try {
-		        is.close();
-		    } catch (IOException ioe) {
-		        // nothing to see here
-		    }
-		}
-		
-		return result.toString();
-	}
+	
+//	private static String readFasta(String path) throws IOException {
+//	String fasta = Helpers.readFile(path);
+//	
+//	String[] lines = fasta.split("\n");
+//	StringBuilder sb = new StringBuilder();
+//	for(String line : lines)
+//		if(!line.startsWith(">"))
+//			sb.append(line.trim());
+//	
+//	return sb.toString();
+//}
+	
+	
+//	private static String fetchUniprotClassification(String id, String sequence) throws IOException {
+//		String urlString = "http://www.uniprot.org/uniprot/"+id+".txt";
+//		
+//		String uniprot = Helpers.readFromURL(urlString);
+////		System.out.println(uniprot);
+//		StringBuilder result = new StringBuilder();
+//		
+//		char curClass = '?';
+//		int curStart = -1;
+//		
+//		String[] lines = uniprot.split("\n");
+//		for(String line : lines) {
+//			if(line.startsWith("FT")) {
+//				String[] cols = line.toLowerCase().split("\\s+");
+//				
+//				if(cols.length<4)
+//					continue;
+//				
+////				if(cols[1].equals("chain"))
+//				if(!cols[1].equals("topo_dom") && !cols[1].equals("transmem"))
+//					continue;
+//				
+//				int start, end;
+//				try {
+//					//corrected for first index 0
+//					start = Integer.parseInt(cols[2]) - 1 ;
+//					end = Integer.parseInt(cols[3]) - 1 ;
+//				}
+//				catch(NumberFormatException e) {
+//					continue;
+//				}
+//				
+////				System.out.println(Arrays.toString(cols));
+//				
+//				if(curStart == -1) curStart = start;
+//				
+//				char cls = '?';
+//				if(cols.length>=5) {
+//					if(cols[4].contains("cytoplasmic"))
+//						cls = 'I';
+//					else if(cols[1].contains("transmem"))
+//						cls = 'T';
+//					else if(cols[4].contains("extracellular"))
+//						cls = 'O';
+//				}
+//				
+//				if(cls!=curClass && cls!='?') {
+//					curClass = cls;
+//				}
+//				
+////				System.out.println("CLASS="+curClass);
+//				for(int i=0; i<=end-start; i++) {
+////					System.out.print(curClass);
+//					result.append(curClass);
+//				}
+////				System.out.println();
+//				
+//				
+//			}
+//		}
+//		
+//		String seq = "";
+//		for(int i=0; i<lines.length; i++) {
+//			if(lines[i].startsWith("SQ")) {
+//				i++;
+//				
+//				while(i<lines.length && !lines[i].startsWith("//")) {
+//					seq += lines[i];
+//					i++;
+//				}
+//				
+//				seq = seq.replaceAll("\\s", "");
+//			}
+//		}
+//		
+//		if(!seq.equals(sequence)) {
+//			System.err.println("WARNING: SEQUENCE FROM UNIPROT DOES NOT MATCH FASTA SEQ");
+//			System.err.println("Uniprot sequence:");
+//			System.err.println(seq);
+//			System.err.println("FASTA sequence:");
+//			System.err.println(sequence);
+//			System.err.println("Id: "+id);
+//		}
+//		
+//		
+//		return result.toString();
+//	}
+	
+	
+	
 }

@@ -159,23 +159,30 @@ public class Hydrophobicity {
     public static double get(AminoAcid aminoAcid, int scale) {
         String aa = aminoAcid.toString();
 
+        Double result;
+        
         if (scale == KYTE_DOOLITTLE) {
-            return kyteDoolittle.get(aa);
+            result = kyteDoolittle.get(aa);
         } else if (scale == HOPP_WOODS) {
-            return hoppWoods.get(aa);
+        	result = hoppWoods.get(aa);
         } else if (scale == CORNETTE) {
-            return cornette.get(aa);
+        	result = cornette.get(aa);
         } else if (scale == EISENBERG) {
-            return eisenberg.get(aa);
+        	result = eisenberg.get(aa);
 //        } else if (scale == ROSE) {
 //            return rose.get(aa);
         } else if (scale == JANIN) {
-            return janin.get(aa);
+        	result = janin.get(aa);
         } else if (scale == ENGELMAN) {
-            return engelman.get(aa);
+        	result = engelman.get(aa);
         } else {
-            throw (new RuntimeException("Invalid Scale"));
+            throw (new IllegalArgumentException("Invalid Scale"));
         }
+        
+        if(result==null)
+        	throw(new IllegalArgumentException(aa+" has no entry in the specified table ("+scale+")"));
+        
+        return result;
     }
 
     /**

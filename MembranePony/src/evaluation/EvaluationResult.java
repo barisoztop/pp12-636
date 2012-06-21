@@ -19,7 +19,7 @@ public class EvaluationResult {
 	 * with regard to class "inside".
 	 * @return
 	 */
-	public Statistics getRunStatisticsInside() {
+	public Statistics getStatisticsInside() {
 		Statistics s = new Statistics();
 		
 		for(EvaluationRun run : evaluationRuns)
@@ -34,7 +34,7 @@ public class EvaluationResult {
 	 * with regard to class "outside".
 	 * @return
 	 */
-	public Statistics getRunStatisticsOutside() {
+	public Statistics getStatisticsOutside() {
 		Statistics s = new Statistics();
 		
 		for(EvaluationRun run : evaluationRuns)
@@ -49,7 +49,7 @@ public class EvaluationResult {
 	 * with regard to class "transmembrane".
 	 * @return
 	 */
-	public Statistics getRunStatisticsTMH() {
+	public Statistics getStatisticsTMH() {
 		Statistics s = new Statistics();
 		
 		for(EvaluationRun run : evaluationRuns)
@@ -57,6 +57,24 @@ public class EvaluationResult {
 				s.addStatistics(t.transmembrane);
 		
 		return s;
+	}
+	
+	
+	@Override
+	public String toString() {
+		String s = "Evaluation - "+evaluationRuns.length+" runs performed.\n\n";
+		
+		s+="Overall statistics:\n";
+		s+="  TMH     => "+getStatisticsTMH()+"\n";
+		s+="  Outside => "+getStatisticsOutside()+"\n";
+		s+="  Inside  => "+getStatisticsInside()+"\n";
+		s+="\n\n";
+		
+		for(int i=0; i<evaluationRuns.length; i++)
+			s+="Run #"+i+"\n"+evaluationRuns[i]+"\n\n";
+		
+		return s;
+		
 	}
 	
 }
