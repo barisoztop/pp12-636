@@ -1,21 +1,19 @@
 package markov.layout;
 
-import interfaces.Prediction;
-import interfaces.Predictor;
-import interfaces.Result;
-import interfaces.Sequence;
-import interfaces.SequencePosition;
-import interfaces.SlidingWindow;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import markov.graph.Edge;
-import markov.graph.Graph;
-import markov.graph.Vertex;
 import data.AminoAcid;
 import data.Constants;
 import data.SSE;
+import interfaces.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import javax.xml.transform.TransformerConfigurationException;
+import markov.graph.*;
+import org.apache.log4j.Logger;
+import org.jgrapht.ext.GraphMLExporter;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -23,14 +21,16 @@ import data.SSE;
  */
 public class Markov implements Predictor {
 
-    private static final Logger logger = Logger.getLogger(Markov.class.getSimpleName());
+    private static final Logger logger = Logger.getLogger(Markov.class);
     private final Graph<Vertex, Edge> ideetler;
 //    private double[] hpMatrixMinMax;
+    private final File out = new File("markov.graph");
     private double hpSteppingValue = 0.1d;
     private double hpRoundingValue = 10d;
     private int hpscaleUsed = -1;
     private static final double HP_MIN = -5.0d;
     private static final double HP_MAX = 6.0d;
+    private boolean trained = false;
     private Vertex[][] matrix;
 //    private final Vertex TMH_TRUE = new Vertex("TMH_TRUE", null, null, -1);
 //    private final Vertex TMH_FALSE = new Vertex("TMH_FALSE", null, null, -1);
@@ -39,7 +39,7 @@ public class Markov implements Predictor {
     public final Vertex INSIDE = new Vertex("INSIDE", null, null, -1);
 
     public Markov() {
-        logger.info("Spawning new Markov Instance");
+        logger.info("spawning new Markov Instance");
         ideetler = new Graph<Vertex, Edge>(Edge.class);
         ideetler.addVertex(TMH);
         ideetler.addVertex(OUTSIDE);
@@ -66,7 +66,7 @@ public class Markov implements Predictor {
                     while (value_hp < HP_MAX) {
                         //hp = the hydrophobocity value from min to max
                         Vertex tmp = new Vertex(value_aa, value_sse, round(value_hp), windowPos);
-                        logger.log(Level.FINE, "created vertex: {0}", tmp);
+                        logger.debug("created vertex: " + tmp);
                         value_hp += hpSteppingValue;
                         ideetler.addVertex(tmp);
                         matrix[row][windowPos] = tmp;
@@ -76,7 +76,7 @@ public class Markov implements Predictor {
             }
         }
         long end = System.currentTimeMillis();
-        logger.log(Level.INFO, "..finished. {0} vertices in {1} ms", new Object[]{ideetler.vertexSet().size(), end-start});
+        logger.info("created " + ideetler.vertexSet().size() + " vertices in " + (end - start) + " ms");
     }
 
     private double round(double value) {
@@ -86,30 +86,29 @@ public class Markov implements Predictor {
         return result;
     }
 
-    @Deprecated
-    private void addEdges() {
-        System.out.println("addEdges:start");
-        for (Vertex source : ideetler.vertexSet()) {
-            if (source.equals(TMH) || source.equals(OUTSIDE) || source.equals(INSIDE)) {
-                continue;
-            }
-            int posSource = source.getWindowPos();
-            if (posSource == (matrix[0].length - 1)) {
-                //add edges from source to TMH, OUTSIDE, INSIDE (endvertex)
-                ideetler.addEdge(source, TMH);
-                ideetler.addEdge(source, OUTSIDE);
-                ideetler.addEdge(source, INSIDE);
-            } else {
-                //add edges from source (windowPos) to target (windowPos+1)
-                for (int r = 0; r < matrix.length; r++) {
-                    Vertex target = matrix[r][posSource + 1];
-                    ideetler.addEdge(source, target);
-                }
-            }
-        }
-        System.out.println("addEdges:end");
-    }
-
+//    @Deprecated
+//    private void addEdges() {
+//        System.out.println("addEdges:start");
+//        for (Vertex source : ideetler.vertexSet()) {
+//            if (source.equals(TMH) || source.equals(OUTSIDE) || source.equals(INSIDE)) {
+//                continue;
+//            }
+//            int posSource = source.getWindowPos();
+//            if (posSource == (matrix[0].length - 1)) {
+//                //add edges from source to TMH, OUTSIDE, INSIDE (endvertex)
+//                ideetler.addEdge(source, TMH);
+//                ideetler.addEdge(source, OUTSIDE);
+//                ideetler.addEdge(source, INSIDE);
+//            } else {
+//                //add edges from source (windowPos) to target (windowPos+1)
+//                for (int r = 0; r < matrix.length; r++) {
+//                    Vertex target = matrix[r][posSource + 1];
+//                    ideetler.addEdge(source, target);
+//                }
+//            }
+//        }
+//        System.out.println("addEdges:end");
+//    }
     @Override
     public Prediction predict(Sequence sequence) {
         checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
@@ -119,6 +118,9 @@ public class Markov implements Predictor {
 
     @Override
     public void train(Sequence[] trainingCases) {
+        if (trained) {
+            throw new VerifyError("Model can't be overtrained! Create new Instance of markov!");
+        }
         long start = System.currentTimeMillis();
         logger.info("training sequences..");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
@@ -163,12 +165,13 @@ public class Markov implements Predictor {
                     }
                 }
                 //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
-                logger.log(Level.FINE, "SequencePosition: middle {0}", spMiddle);
+                logger.debug("SequencePosition: middle " + spMiddle);
                 checkEdge(vertexMiddle, spMiddle, null, true);
             }
         }
+        trained = true;
         long end = System.currentTimeMillis();
-        logger.log(Level.INFO, "..finished. {0} sequences in {1} ms", new Object[]{trainingCases.length, end-start});
+        logger.info("trained " + trainingCases.length + " sequences in " + (end - start) + " ms");
     }
 
     private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
@@ -185,10 +188,10 @@ public class Markov implements Predictor {
         Edge edge = ideetler.getEdge(source, target);
         if (edge == null) {
             if (!ideetler.containsVertex(source)) {
-                logger.log(Level.SEVERE, "vertex source NOT contained: {0}", source);
+                logger.fatal("vertex source NOT contained: " + source);
             }
             if (!ideetler.containsVertex(target)) {
-                logger.log(Level.SEVERE, "vertex target NOT contained: {0}", target);
+                logger.fatal("vertex target NOT contained: " + target);
             }
             ideetler.addEdge(source, target);
         } else {
@@ -214,11 +217,30 @@ public class Markov implements Predictor {
     private void checkScale(int scale) {
         if (hpscaleUsed == -1) {
             hpscaleUsed = scale;
-//            hpMatrixMinMax = Hydrophobicity.getMinMax(hpscaleUsed);
-//
-//            System.out.println("hp: min: "+hpMatrixMinMax[0]+" max: "+hpMatrixMinMax[1]+" hpSteppingValue: "+hpSteppingValue+ "-> hpAllSteps: "+hpAllSteps);
         } else if (hpscaleUsed != scale) {
-            throw new VerifyError("Hydrophobocity scale has changed during test/train! Create new Instance of class!");
+            throw new VerifyError("Hydrophobocity scale has changed during test/train! Create new Instance of markov!");
         }
+    }
+
+    @Override
+    public void save(File model) throws Exception {
+        if (!trained) {
+            throw new VerifyError("Can't save an empty model! Train it before!");
+        }
+        long start = System.currentTimeMillis();
+        logger.info("saving model to " + model.getAbsolutePath());
+        BufferedWriter bw = new BufferedWriter(new FileWriter(model));
+        GraphMLExporter g = new GraphMLExporter(new MarkovVertexNameProvider(), null, new MarkovEdgeNameProvider(), null);
+        g.export(bw, ideetler);
+        bw.flush();
+        bw.close();
+        long end = System.currentTimeMillis();
+        long filesize = model.length() / 1024;
+        logger.info("saved model (" + filesize + " kb) in " + (end - start) + " ms");
+    }
+
+    @Override
+    public void load(File model) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

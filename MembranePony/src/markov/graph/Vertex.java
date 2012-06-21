@@ -1,10 +1,5 @@
 package markov.graph;
 
-import data.AminoAcid;
-import data.SSE;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * simple class for represeting a morkov vertex specified by<br> <li> aminoacid
  * <li> sse <li> hydrophobocity
@@ -13,7 +8,6 @@ import java.util.logging.Logger;
  */
 public class Vertex {
 
-    private static final Logger logger = Logger.getLogger(Vertex.class.getSimpleName());
     private String aminoacid;
     private String sse;
     private final Double hydrophobocity;
@@ -22,24 +16,31 @@ public class Vertex {
 
     public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
         this.aminoacid = aminoacid.intern();
+//        String tmp = "aa:"+this.aminoacid;
         String tmp = "aa:"+this.aminoacid;
         if (sse == null) {
             this.sse = null;
+            tmp += "_sse:" + this.sse;
         } else {
             this.sse = sse.intern();
-            tmp += "|sse:" + this.sse;
+//            tmp += "|sse:" + this.sse;
+            tmp += "_sse:" + this.sse;
         }
         if (hydrophobocity == null) {
             this.hydrophobocity = null;
+            tmp += "_hp:" + this.hydrophobocity;
         } else {
             this.hydrophobocity = hydrophobocity;
-            tmp += "|hp:" + this.hydrophobocity;
+//            tmp += "|hp:" + this.hydrophobocity;
+            tmp += "_hp:" + this.hydrophobocity;
         }
         if (windowPos == -1) {
             this.windowPos = -1;
+            tmp += "_@" + windowPos;
         } else {
             this.windowPos = windowPos;
-            tmp += "|@" + windowPos;
+//            tmp += "|@" + windowPos;
+            tmp += "_@" + windowPos;
         }
         id = tmp;
 
