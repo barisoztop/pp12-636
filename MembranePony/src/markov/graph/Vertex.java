@@ -1,8 +1,9 @@
 package markov.graph;
 
 /**
- * simple class for represeting a morkov vertex specified by<br> <li> aminoacid
- * <li> sse <li> hydrophobocity
+ * simple class for represeting a morkov vertex specified by<br>
+ * <li> aminoacid:String
+ * <li> sse:String <li> hydrophobocity:Double <li> windowPos:int
  *
  * @author rgreil
  */
@@ -15,40 +16,42 @@ public class Vertex {
     private final String id;
 
     public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
+        //aminoAcid:Sting
         this.aminoacid = aminoacid.intern();
-//        String tmp = "aa:"+this.aminoacid;
-        String tmp = "aa:"+this.aminoacid;
-        if (sse == null) {
-            this.sse = null;
-            tmp += "_sse:" + this.sse;
-        } else {
-            this.sse = sse.intern();
-//            tmp += "|sse:" + this.sse;
-            tmp += "_sse:" + this.sse;
-        }
-        if (hydrophobocity == null) {
-            this.hydrophobocity = null;
-            tmp += "_hp:" + this.hydrophobocity;
-        } else {
-            this.hydrophobocity = hydrophobocity;
-//            tmp += "|hp:" + this.hydrophobocity;
-            tmp += "_hp:" + this.hydrophobocity;
-        }
-        if (windowPos == -1) {
-            this.windowPos = -1;
-            tmp += "_@" + windowPos;
-        } else {
-            this.windowPos = windowPos;
-//            tmp += "|@" + windowPos;
-            tmp += "_@" + windowPos;
-        }
-        id = tmp;
+        String tmp = this.aminoacid;
 
-//        logger.log(Level.INFO, "created vertex: {0}", id);
+        //secondaryStructure:String
+//        if (sse == null) {
+//            this.sse = null;
+//        } else {
+            this.sse = sse.intern();
+//        }
+        tmp += ":" + this.sse;
+
+        //hydrophobocity:Double
+//        if (hydrophobocity == null) {
+//            this.hydrophobocity = null;
+//
+//        } else {
+            this.hydrophobocity = hydrophobocity;
+//        }
+        tmp += ":" + this.hydrophobocity.toString().intern();
+
+        //windowPosition:int
+//        if (windowPos == -1) {
+//            this.windowPos = -1;
+//        } else {
+            this.windowPos = windowPos;
+//        }
+        tmp += ":" + windowPos;
+
+        //create internal id
+        id = tmp;
     }
 
     @Override
     public String toString() {
+//        String result = "aa:" + getAminoacid() + "_sse:" + getSse() + "_hp:" + getHydrophobocity() + "_@:" + getWindowPos();
         return id;
     }
 
@@ -82,13 +85,13 @@ public class Vertex {
         return hydrophobocity;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public String getSse() {
         return sse;
     }
+
+//    public String getId() {
+//        return id;
+//    }
 
     public int getWindowPos() {
         return windowPos;

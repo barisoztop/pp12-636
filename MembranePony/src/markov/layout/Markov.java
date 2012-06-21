@@ -4,16 +4,14 @@ import data.AminoAcid;
 import data.Constants;
 import data.SSE;
 import interfaces.*;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.logging.Level;
-import javax.xml.transform.TransformerConfigurationException;
+import java.io.*;
+import java.math.BigDecimal;
+import java.util.Scanner;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import markov.graph.*;
 import org.apache.log4j.Logger;
 import org.jgrapht.ext.GraphMLExporter;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -22,7 +20,7 @@ import org.xml.sax.SAXException;
 public class Markov implements Predictor {
 
     private static final Logger logger = Logger.getLogger(Markov.class);
-    private final Graph<Vertex, Edge> ideetler;
+    private Graph<Vertex, Edge> wintermute;
 //    private double[] hpMatrixMinMax;
     private final File out = new File("markov.graph");
     private double hpSteppingValue = 0.1d;
@@ -34,24 +32,25 @@ public class Markov implements Predictor {
     private Vertex[][] matrix;
 //    private final Vertex TMH_TRUE = new Vertex("TMH_TRUE", null, null, -1);
 //    private final Vertex TMH_FALSE = new Vertex("TMH_FALSE", null, null, -1);
-    public final Vertex TMH = new Vertex("TMH", null, null, -1);
-    public final Vertex OUTSIDE = new Vertex("OUTSIDE", null, null, -1);
-    public final Vertex INSIDE = new Vertex("INSIDE", null, null, -1);
+    public final Vertex TMH = new Vertex("TMH", "null", Double.NaN, -1);
+    public final Vertex OUTSIDE = new Vertex("OUTSIDE", "null", Double.NaN, -1);
+    public final Vertex INSIDE = new Vertex("INSIDE", "null", Double.NaN, -1);
+    public final Vertex GECONNYSE = new Vertex("GECONNYSE", "null", Double.NaN, -1);
 
     public Markov() {
         logger.info("spawning new Markov Instance");
-        ideetler = new Graph<Vertex, Edge>(Edge.class);
-        ideetler.addVertex(TMH);
-        ideetler.addVertex(OUTSIDE);
-        ideetler.addVertex(INSIDE);
+        wintermute = new Graph<Vertex, Edge>(Edge.class);
+        wintermute.addVertex(TMH);
+        wintermute.addVertex(OUTSIDE);
+        wintermute.addVertex(INSIDE);
+        wintermute.addVertex(GECONNYSE);
         int hpSteps = (int) ((HP_MAX - HP_MIN) / hpSteppingValue) + 1;
         matrix = new Vertex[AminoAcid.values().length * SSE.values().length * hpSteps][Constants.WINDOW_LENGTH]; //[rows][columns]
-        addVertices();
     }
 
     private void addVertices() {
         long start = System.currentTimeMillis();
-        logger.info("creating vertices..");
+        logger.info("VERTICES: creating vertices");
         //create nodes and add them to the graph
         for (int windowPos = 0; windowPos < matrix[0].length; windowPos++) {
             //windowPos = the position of the vertex in the markov model [0 - (Constants.WINDOW_LENGTH - 1))
@@ -66,9 +65,9 @@ public class Markov implements Predictor {
                     while (value_hp < HP_MAX) {
                         //hp = the hydrophobocity value from min to max
                         Vertex tmp = new Vertex(value_aa, value_sse, round(value_hp), windowPos);
-                        logger.debug("created vertex: " + tmp);
+                        logger.debug("VERTICES: DEBUG: created vertex: " + tmp);
                         value_hp += hpSteppingValue;
-                        ideetler.addVertex(tmp);
+                        wintermute.addVertex(tmp);
                         matrix[row][windowPos] = tmp;
                         row++;
                     }
@@ -76,7 +75,7 @@ public class Markov implements Predictor {
             }
         }
         long end = System.currentTimeMillis();
-        logger.info("created " + ideetler.vertexSet().size() + " vertices in " + (end - start) + " ms");
+        logger.info("VERTICES: " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
     }
 
     private double round(double value) {
@@ -119,10 +118,11 @@ public class Markov implements Predictor {
     @Override
     public void train(Sequence[] trainingCases) {
         if (trained) {
-            throw new VerifyError("Model can't be overtrained! Create new Instance of markov!");
+            throw new VerifyError("WARNING: TRAIN: Model can not be overtrained! Create new empty Instance of markov!");
         }
+        addVertices();
         long start = System.currentTimeMillis();
-        logger.info("training sequences..");
+        logger.info("TRAIN: "+ trainingCases.length + " sequences");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
         int middle = (Constants.WINDOW_LENGTH / 2);
         for (Sequence sequence : trainingCases) {
@@ -136,7 +136,7 @@ public class Markov implements Predictor {
 
                     //source
                     if (spSource == null) {
-                        //spSource is more important, because it holds always the middle
+                        //spSource is more important, because it always holds the middle
                         //because we are going from left to right inside the window..
                         continue;
                     }
@@ -165,13 +165,13 @@ public class Markov implements Predictor {
                     }
                 }
                 //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
-                logger.debug("SequencePosition: middle " + spMiddle);
+                logger.debug("TRAIN: DEBUG: SequencePosition: middle " + spMiddle);
                 checkEdge(vertexMiddle, spMiddle, null, true);
             }
         }
         trained = true;
         long end = System.currentTimeMillis();
-        logger.info("trained " + trainingCases.length + " sequences in " + (end - start) + " ms");
+        logger.info("TRAIN: in " + (end - start) + " ms");
     }
 
     private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
@@ -185,17 +185,17 @@ public class Markov implements Predictor {
                 target = TMH;
             }
         }
-        Edge edge = ideetler.getEdge(source, target);
+        Edge edge = wintermute.getEdge(source, target);
         if (edge == null) {
-            if (!ideetler.containsVertex(source)) {
-                logger.fatal("vertex source NOT contained: " + source);
+            if (!wintermute.containsVertex(source)) {
+                logger.fatal("WARNING: vertex source NOT contained: " + source);
             }
-            if (!ideetler.containsVertex(target)) {
-                logger.fatal("vertex target NOT contained: " + target);
+            if (!wintermute.containsVertex(target)) {
+                logger.fatal("WARNING: vertex target NOT contained: " + target);
             }
-            ideetler.addEdge(source, target);
+            wintermute.addEdge(source, target);
         } else {
-            ideetler.setEdgeWeight(edge, (ideetler.getEdgeWeight(edge) + 1));
+            wintermute.setEdgeWeight(edge, (wintermute.getEdgeWeight(edge) + 1));
         }
     }
 
@@ -205,7 +205,7 @@ public class Markov implements Predictor {
     }
 
     public Graph getGraph() {
-        return ideetler;
+        return wintermute;
     }
 
     /**
@@ -218,29 +218,139 @@ public class Markov implements Predictor {
         if (hpscaleUsed == -1) {
             hpscaleUsed = scale;
         } else if (hpscaleUsed != scale) {
-            throw new VerifyError("Hydrophobocity scale has changed during test/train! Create new Instance of markov!");
+            throw new VerifyError("WARNING: CHECK: Hydrophobocity scale has changed! Create new Instance of markov!");
         }
     }
 
     @Override
     public void save(File model) throws Exception {
         if (!trained) {
-            throw new VerifyError("Can't save an empty model! Train it before!");
+            throw new VerifyError("WARNING: SAVE: Can not save an empty model! Train it before!");
         }
         long start = System.currentTimeMillis();
-        logger.info("saving model to " + model.getAbsolutePath());
+        logger.info("SAVE: "+ model.getAbsolutePath()+" (v: " + wintermute.vertexSet().size() + " | e: " + wintermute.edgeSet().size() + " | " + (model.length() / 1024) + " kb)");
         BufferedWriter bw = new BufferedWriter(new FileWriter(model));
         GraphMLExporter g = new GraphMLExporter(new MarkovVertexNameProvider(), null, new MarkovEdgeNameProvider(), null);
-        g.export(bw, ideetler);
+        g.export(bw, wintermute);
+
+        //verify begin
+        bw.write("<!-- ");
+        bw.write("wintermute:" + ((double) wintermute.vertexSet().size() / (double) wintermute.edgeSet().size()) + ":");
+        bw.write(" -->");
+        //verify end
+
         bw.flush();
         bw.close();
         long end = System.currentTimeMillis();
-        long filesize = model.length() / 1024;
-        logger.info("saved model (" + filesize + " kb) in " + (end - start) + " ms");
+        logger.info("SAVE: in "+ (end - start) + " ms");
     }
 
     @Override
     public void load(File model) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (trained) {
+            throw new VerifyError("WARNING: LOAD: Model can not be overloaded! Create new emtpy Instance of markov!");
+        }
+
+        long start = System.currentTimeMillis();
+        logger.info("READ: "+model.getAbsolutePath()+ " (" + (model.length() / 1024) + " kb)");
+
+        GraphXmlHandler graphXmlHandler = new GraphXmlHandler();
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        factory.setValidating(true);
+        factory.setXIncludeAware(true);
+
+        SAXParser parser = factory.newSAXParser();
+        parser.parse(model, graphXmlHandler);
+
+
+        logger.info("READ: adding " + graphXmlHandler.getListVertex().size() + " vertices");
+        for (String vertex : graphXmlHandler.getListVertex()) {
+            String[] parts = vertex.split(":");
+            String aa = parts[0].intern();
+            String sse = parts[1].intern();
+            Double hp = Double.valueOf(parts[2].intern());
+            int wp = Integer.valueOf(parts[3].intern());
+            wintermute.addVertex(new Vertex(aa, sse, hp, wp));
+        }
+
+        logger.info("READ: adding " + graphXmlHandler.getListEdge().size() + " edges");
+        for (String edge : graphXmlHandler.getListEdge()) {
+            String[] parts = edge.split(";");
+
+            //source
+            String[] src = parts[0].split(":");
+            String aa = src[0].intern();
+            String sse = src[1].intern();
+            Double hp = Double.valueOf(src[2].intern());
+            int wp = Integer.valueOf(src[3].intern());
+            Vertex source = new Vertex(aa, sse, hp, wp);
+
+            //target
+            String[] trg = parts[1].split(":");
+            aa = trg[0].intern();
+            sse = trg[1].intern();
+            hp = Double.valueOf(trg[2].intern());
+            wp = Integer.valueOf(trg[3].intern());
+            Vertex target = new Vertex(aa, sse, hp, wp);
+
+            //weight
+            String[] wgt = parts[2].split(":");
+            Double weight = Double.valueOf(wgt[1]);
+            wintermute.addEdge(source, target);
+            Edge e = wintermute.getEdge(source, target);
+            wintermute.setEdgeWeight(e, weight);
+        }
+
+        //verify start
+        String shc = tail(model);
+        if (shc.startsWith("<!-- ")) {
+            String[] split = shc.split(" ")[1].split(":");
+            if (split[0].equals("wintermute")) {
+                double old = Double.parseDouble(split[1]);
+                double act = ((double) wintermute.vertexSet().size() / (double) wintermute.edgeSet().size());
+                if (old == act) {
+                    logger.info("READ: model OK..");
+                } else {
+                    throw new VerifyError("WARNING: READ: Model is corrupted and can not be read! Export new model!");
+                }
+            }
+            //verify end
+
+            trained = true;
+            long end = System.currentTimeMillis();
+            logger.info("READ: in " + (end - start) + " ms");
+
+        }
+    }
+
+    public String tail(File file) throws FileNotFoundException, IOException {
+        RandomAccessFile fileHandler = new RandomAccessFile(file, "r");
+        long fileLength = file.length() - 1;
+        StringBuilder sb = new StringBuilder();
+
+        for (long filePointer = fileLength; filePointer != -1; filePointer--) {
+            fileHandler.seek(filePointer);
+            int readByte = fileHandler.readByte();
+
+            if (readByte == 0xA) {
+                if (filePointer == fileLength) {
+                    continue;
+                } else {
+                    break;
+                }
+            } else if (readByte == 0xD) {
+                if (filePointer == fileLength - 1) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+
+            sb.append((char) readByte);
+        }
+
+        String lastLine = sb.reverse().toString();
+        return lastLine;
     }
 }
