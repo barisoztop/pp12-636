@@ -23,6 +23,9 @@ public class Test {
         m.train(RandomSequenceGenerator.generate(100));
 //        m.train(RandomSequenceGenerator.generate(100));
         m.save(new File("markov.graph"));
+//        m = new Markov();
+//        m.load(new File("markov_ORIG.graph"));
+//        m.save(new File("markov_NEW.graph"));
 //        for (Object object : m.getGraph().incomingEdgesOf(m.OUTSIDE)) {
 //            System.out.println(object);
 //        }
