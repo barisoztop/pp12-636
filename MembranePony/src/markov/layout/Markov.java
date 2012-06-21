@@ -21,8 +21,6 @@ public class Markov implements Predictor {
 
     private static final Logger logger = Logger.getLogger(Markov.class);
     private Graph<Vertex, Edge> wintermute;
-//    private double[] hpMatrixMinMax;
-    private final File out = new File("markov.graph");
     private double hpSteppingValue = 0.1d;
     private double hpRoundingValue = 10d;
     private int hpscaleUsed = -1;
@@ -30,8 +28,6 @@ public class Markov implements Predictor {
     private static final double HP_MAX = 6.0d;
     private boolean trained = false;
     private Vertex[][] matrix;
-//    private final Vertex TMH_TRUE = new Vertex("TMH_TRUE", null, null, -1);
-//    private final Vertex TMH_FALSE = new Vertex("TMH_FALSE", null, null, -1);
     public final Vertex TMH = new Vertex("TMH", "null", Double.NaN, -1);
     public final Vertex OUTSIDE = new Vertex("OUTSIDE", "null", Double.NaN, -1);
     public final Vertex INSIDE = new Vertex("INSIDE", "null", Double.NaN, -1);
@@ -122,7 +118,7 @@ public class Markov implements Predictor {
         }
         addVertices();
         long start = System.currentTimeMillis();
-        logger.info("TRAIN: "+ trainingCases.length + " sequences");
+        logger.info("TRAIN: training "+ trainingCases.length + " sequences");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
         int middle = (Constants.WINDOW_LENGTH / 2);
         for (Sequence sequence : trainingCases) {
@@ -171,7 +167,7 @@ public class Markov implements Predictor {
         }
         trained = true;
         long end = System.currentTimeMillis();
-        logger.info("TRAIN: in " + (end - start) + " ms");
+        logger.info("TRAIN: "+wintermute.edgeSet().size()+" edges in " + (end - start) + " ms");
     }
 
     private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
@@ -218,14 +214,14 @@ public class Markov implements Predictor {
         if (hpscaleUsed == -1) {
             hpscaleUsed = scale;
         } else if (hpscaleUsed != scale) {
-            throw new VerifyError("WARNING: CHECK: Hydrophobocity scale has changed! Create new Instance of markov!");
+            throw new VerifyError("Hydrophobocity scale has changed! Create new Instance of markov!");
         }
     }
 
     @Override
     public void save(File model) throws Exception {
         if (!trained) {
-            throw new VerifyError("WARNING: SAVE: Can not save an empty model! Train it before!");
+            throw new VerifyError("SAVE: Can not save an empty model! Train it before!");
         }
         long start = System.currentTimeMillis();
         logger.info("SAVE: "+ model.getAbsolutePath()+" (v: " + wintermute.vertexSet().size() + " | e: " + wintermute.edgeSet().size() + " | " + (model.length() / 1024) + " kb)");
@@ -248,7 +244,7 @@ public class Markov implements Predictor {
     @Override
     public void load(File model) throws Exception {
         if (trained) {
-            throw new VerifyError("WARNING: LOAD: Model can not be overloaded! Create new emtpy Instance of markov!");
+            throw new VerifyError("LOAD: Model can not be overloaded! Create new emtpy Instance of markov!");
         }
 
         long start = System.currentTimeMillis();
@@ -312,7 +308,7 @@ public class Markov implements Predictor {
                 if (old == act) {
                     logger.info("READ: model OK..");
                 } else {
-                    throw new VerifyError("WARNING: READ: Model is corrupted and can not be read! Export new model!");
+                    throw new VerifyError("READ: Model is corrupted and can not be read! Export new model!");
                 }
             }
             //verify end
