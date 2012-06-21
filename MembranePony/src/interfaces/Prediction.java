@@ -14,7 +14,7 @@ public interface Prediction {
 	
 	/**
 	 * 
-	 * @param residueNr
+	 * @param residueNr, starting at 0
 	 * @return the prediction (in TMH, outside/inside of cell) for each residue of the input sequence
 	 */
 	public Result getPredictionForResidue(int residueNr);
