@@ -9,6 +9,17 @@ public enum SSE {
 
     Helix,
     Sheet,
-    Coil
+    Coil;
+    
+    
+    public static SSE forProfRdb(char profRdb) {
+    	switch(profRdb) {
+    	case 'L': return Coil;
+    	case 'E': return Sheet;
+    	case 'H': return Helix;
+    	
+    	default: throw(new IllegalArgumentException("'"+profRdb+"' does not seem to be a proper ProfRdb SSE identifier (HEL)"));
+    	}
+    }
 
 }

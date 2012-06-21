@@ -43,6 +43,24 @@ public class Statistics {
 	}
 	
 	
+	
+	@Override
+	public String toString() {
+		
+		return "Stats [ tp="+truePositives+" tn="+trueNegatives+" fp="+falsePositives+" fn="+falseNegatives+
+				" recall="+d(getRecall())+
+				" precision="+d(getPrecision())+
+				" specificity="+d(getSpecificity())+
+				" f-measure="+d(getFMeasure())+
+			" ]";
+	}
+	
+	
+	private String d(double d) {
+		return ""+((Math.round(d*1000))/1000d);
+	}
+	
+	
 	//the actual statistics
 	
 	/**
