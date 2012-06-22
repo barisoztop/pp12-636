@@ -10,7 +10,6 @@ public class NeuralPredictorFactory implements PredictorFactory{
     private boolean configuration;
     private int inputNeurons;
     private int outputNeurons;
-    private String path;
     
     public NeuralPredictorFactory(NeuralTask task){
         this.task = task;
@@ -25,7 +24,7 @@ public class NeuralPredictorFactory implements PredictorFactory{
             if(this.configuration){
                 
                 //used for training
-                return new NeuralPredictor(path, this.inputNeurons, this.outputNeurons);
+                return new NeuralPredictor(this.inputNeurons, this.outputNeurons);
             
             }else{
                 throw new IllegalStateException("Please use configuration method first"
@@ -35,10 +34,9 @@ public class NeuralPredictorFactory implements PredictorFactory{
         }else if(task == NeuralTask.PREDICTION){
             
             //used for prediction
-            return new NeuralPredictor(path);
+            return new NeuralPredictor();
         
-        }else{
-            
+        }else{        
             throw new IllegalStateException("NeuralPredictor Instance can not be created.");
         }
     }
@@ -55,6 +53,5 @@ public class NeuralPredictorFactory implements PredictorFactory{
         this.configuration = true;
         this.inputNeurons = inputNeurons;
         this.outputNeurons = outputNeurons;
-        this.path = pathToSaveNN;
     }  
 }

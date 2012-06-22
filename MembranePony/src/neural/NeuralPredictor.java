@@ -3,6 +3,7 @@ package neural;
 import interfaces.Prediction;
 import interfaces.Predictor;
 import interfaces.Sequence;
+import java.io.File;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.SupervisedTrainingElement;
 import org.neuroph.core.learning.TrainingSet;
@@ -12,12 +13,12 @@ import org.neuroph.nnet.Perceptron;
  *
  * @author tobias
  */
-public class NeuralPredictor implements  Predictor{
+public class NeuralPredictor implements Predictor{
 
-    private String pathToSavedNeuralNetwork;
     private NeuralNetwork neuralNetwork;
     private int inputN;
     private int outputN;
+    private boolean networkLoaded;
     private NeuralTask task;
 
     /**
@@ -26,10 +27,9 @@ public class NeuralPredictor implements  Predictor{
      * @param inputNeurons
      * @param outPutNeurons
      */
-     public NeuralPredictor(String pathToSavedNeuralNetwork, int inputNeurons, int outputNeurons){
+     public NeuralPredictor(int inputNeurons, int outputNeurons){
 
         this.task = NeuralTask.TRAINING;
-        this.pathToSavedNeuralNetwork = pathToSavedNeuralNetwork;
         this.inputN = inputNeurons;
         this.outputN = outputNeurons;
 
@@ -38,24 +38,21 @@ public class NeuralPredictor implements  Predictor{
         //here all input data n should be mapped onto a single perceptron
         //returning 1 for TMH and 0 for non TMH
         this.neuralNetwork = new Perceptron(inputNeurons, outputNeurons);
-    }
-
-    /**
-      * Use this constructor for loading an existing neural network and for prediction
-      * @param pathToSavedNetwork
+    }   
+     
+     /**
+      * Use this constructor to load a saved neural network and for prediction
       */
-    public NeuralPredictor(String pathToSavedNetwork){
-
-        this.task = NeuralTask.PREDICTION;
-        this.pathToSavedNeuralNetwork = pathToSavedNetwork;
-
-        try{
-           this.neuralNetwork = NeuralNetwork.load(pathToSavedNetwork);
-        }catch(Exception e){
-            System.out.println("NeuralNetwork could not be found at "+pathToSavedNetwork);
-        }
-    }
-
+     public NeuralPredictor(){
+         this.networkLoaded = true;
+         this.task = NeuralTask.PREDICTION;
+     }
+    
+    /**
+      * Predicts a 
+      * @param sequence
+      * @return 
+      */
     @Override
     public Prediction predict(Sequence sequence) {
 
@@ -63,10 +60,23 @@ public class NeuralPredictor implements  Predictor{
             throw new IllegalStateException("Instance was created for Training."
                     + "Prediction is not possible at the moment.");
         }
-
+        
+        if(!this.networkLoaded){
+            throw new IllegalStateException("Neural Network was not loaded"
+                    + "from harddisk. Please use load method to load it.");
+        }
+        
+        Prediction p;
+        
+        
+        
         return null;
     }
-
+    
+    /**
+     * 
+     * @param trainingCases 
+     */
     @Override
     public void train(Sequence[] trainingCases) {
 
@@ -100,16 +110,6 @@ public class NeuralPredictor implements  Predictor{
         b = System.currentTimeMillis();
 
         System.out.println("Network trained. This took "+(b-a)+" milliseconds.");
-
-        System.out.println("Saving network...");
-
-        try{
-            this.neuralNetwork.save(this.pathToSavedNeuralNetwork);
-        }catch(Exception ex){
-            System.out.println("Neural Network could not be saved to path "+this.pathToSavedNeuralNetwork);
-        }
-
-        System.out.println("Network saved to "+this.pathToSavedNeuralNetwork);
     }
 
     /**
@@ -126,21 +126,10 @@ public class NeuralPredictor implements  Predictor{
      */
     public double[] getNNOutput(){
         if(task == NeuralTask.PREDICTION){
-
             return this.neuralNetwork.getOutput();
-
         }else{
-
             throw new IllegalStateException("Output of NN cannot be delivered in training mode.");
         }
-    }
-
-    /**
-     * Returns the file path to the neural network on hard disk
-     * @return
-     */
-    public String getPathToSavedNeuralNetwork(){
-        return this.pathToSavedNeuralNetwork;
     }
 
     /**
@@ -149,14 +138,53 @@ public class NeuralPredictor implements  Predictor{
      * @param trainingSet
      */
     private void generateTrainingSet(Sequence[] trainingCases, TrainingSet<SupervisedTrainingElement> trainingSet){
-
+        for(Sequence s : trainingCases){
+            
+        }
     }
 
     /**
-     * Checks if the configuration of the neural network matches the training cases
-     * @param trainingCases
+     * Saves trained model to hard disk
+     * @param model
+     * @throws Exception 
      */
-    private void checkIfConfigurationMatchesData(Sequence[] trainingCases){
-
+    @Override
+    public void save(File model) throws Exception {
+        try{
+            this.neuralNetwork.save(model.toString());
+        }catch(Exception e){
+            System.out.println("Model could not saved to path "+model.toString());
+        }
+    }
+    
+    /**
+     * Loads model from harddisk
+     * @param model
+     * @throws Exception 
+     */
+    @Override
+    public void load(File model) throws Exception {
+        try{
+            this.neuralNetwork = NeuralNetwork.load(model.toString());
+            this.networkLoaded = true;
+        }catch(Exception e){
+            System.out.println("Model could be load from path "+model.toString());
+        }
+    }
+    
+    /**
+     * Returns the number of input neurons used in this neural network
+     * @return 
+     */
+    public int getNumberOfInputNeurons(){
+        return this.inputN;
+    }
+    
+    /**
+     * Returns the number of output neurons used in this neural network
+     * @return 
+     */
+    public int getNumberOfOutputNeurons(){
+        return this.outputN;
     }
 }
