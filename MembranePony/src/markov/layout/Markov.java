@@ -46,7 +46,7 @@ public class Markov implements Predictor {
 
     private void addVertices() {
         long start = System.currentTimeMillis();
-        logger.info("VERTICES: creating vertices");
+        logger.info("creating vertices");
         //create nodes and add them to the graph
         for (int windowPos = 0; windowPos < matrix[0].length; windowPos++) {
             //windowPos = the position of the vertex in the markov model [0 - (Constants.WINDOW_LENGTH - 1))
@@ -61,7 +61,7 @@ public class Markov implements Predictor {
                     while (value_hp < HP_MAX) {
                         //hp = the hydrophobocity value from min to max
                         Vertex tmp = new Vertex(value_aa, value_sse, round(value_hp), windowPos);
-                        logger.debug("VERTICES: DEBUG: created vertex: " + tmp);
+                        logger.trace("created vertex: " + tmp);
                         value_hp += hpSteppingValue;
                         wintermute.addVertex(tmp);
                         matrix[row][windowPos] = tmp;
@@ -71,14 +71,7 @@ public class Markov implements Predictor {
             }
         }
         long end = System.currentTimeMillis();
-        logger.info("VERTICES: " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
-    }
-
-    private double round(double value) {
-        double result = value * hpRoundingValue;
-        result = Math.round(result);
-        result = result / hpRoundingValue;
-        return result;
+        logger.info("-> " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
     }
 
 //    @Deprecated
@@ -106,19 +99,31 @@ public class Markov implements Predictor {
 //    }
     @Override
     public Prediction predict(Sequence sequence) {
+        if (!trained) {
+            throw new VerifyError("Can not predict with an empty model! Train it before!");
+        }
         checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
+        Result[] predictions = new Result[sequence.length()];
 
-        throw new UnsupportedOperationException("Not supported yet.");
+        //NORMALIZE
+        //todo
+
+        //CLASSIFY: naiveBayes
+        //todo
+        //if edge does not exist -> weight = 0
+
+
+        return new GenericPrediction(sequence, predictions);
     }
 
     @Override
     public void train(Sequence[] trainingCases) {
         if (trained) {
-            throw new VerifyError("WARNING: TRAIN: Model can not be overtrained! Create new empty Instance of markov!");
+            throw new VerifyError("Model can not be overtrained! Create new empty Instance of markov!");
         }
         addVertices();
         long start = System.currentTimeMillis();
-        logger.info("TRAIN: training "+ trainingCases.length + " sequences");
+        logger.info("training " + trainingCases.length + " sequences");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
         int middle = (Constants.WINDOW_LENGTH / 2);
         for (Sequence sequence : trainingCases) {
@@ -161,70 +166,22 @@ public class Markov implements Predictor {
                     }
                 }
                 //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
-                logger.debug("TRAIN: DEBUG: SequencePosition: middle " + spMiddle);
+                logger.trace("SequencePosition: middle " + spMiddle);
                 checkEdge(vertexMiddle, spMiddle, null, true);
             }
         }
         trained = true;
         long end = System.currentTimeMillis();
-        logger.info("TRAIN: "+wintermute.edgeSet().size()+" edges in " + (end - start) + " ms");
-    }
-
-    private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
-        if (middle) {
-            Result result = spSource.getRealClass();
-            if (result.equals(Result.INSIDE)) {
-                target = INSIDE;
-            } else if (result.equals(Result.OUTSIDE)) {
-                target = OUTSIDE;
-            } else if (result.equals(Result.TMH)) {
-                target = TMH;
-            }
-        }
-        Edge edge = wintermute.getEdge(source, target);
-        if (edge == null) {
-            if (!wintermute.containsVertex(source)) {
-                logger.fatal("WARNING: vertex source NOT contained: " + source);
-            }
-            if (!wintermute.containsVertex(target)) {
-                logger.fatal("WARNING: vertex target NOT contained: " + target);
-            }
-            wintermute.addEdge(source, target);
-        } else {
-            wintermute.setEdgeWeight(edge, (wintermute.getEdgeWeight(edge) + 1));
-        }
-    }
-
-    public void setMappingContValuesToNodes(double range) {
-        hpSteppingValue = range;
-        hpRoundingValue = 1 / range;
-    }
-
-    public Graph getGraph() {
-        return wintermute;
-    }
-
-    /**
-     * checks hpscale for staying the same during train and test
-     *
-     * @param scale
-     * @throws VerifyError if scale has changed within same instance of class
-     */
-    private void checkScale(int scale) {
-        if (hpscaleUsed == -1) {
-            hpscaleUsed = scale;
-        } else if (hpscaleUsed != scale) {
-            throw new VerifyError("Hydrophobocity scale has changed! Create new Instance of markov!");
-        }
+        logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
     }
 
     @Override
     public void save(File model) throws Exception {
         if (!trained) {
-            throw new VerifyError("SAVE: Can not save an empty model! Train it before!");
+            throw new VerifyError("Can not save an empty model! Train it before!");
         }
         long start = System.currentTimeMillis();
-        logger.info("SAVE: "+ model.getAbsolutePath()+" (v: " + wintermute.vertexSet().size() + " | e: " + wintermute.edgeSet().size() + " | " + (model.length() / 1024) + " kb)");
+        logger.info("saving " + model.getAbsolutePath() + " (v: " + wintermute.vertexSet().size() + " | e: " + wintermute.edgeSet().size() + " | " + (model.length() / 1024) + " kb)");
         BufferedWriter bw = new BufferedWriter(new FileWriter(model));
         GraphMLExporter g = new GraphMLExporter(new MarkovVertexNameProvider(), null, new MarkovEdgeNameProvider(), null);
         g.export(bw, wintermute);
@@ -238,17 +195,17 @@ public class Markov implements Predictor {
         bw.flush();
         bw.close();
         long end = System.currentTimeMillis();
-        logger.info("SAVE: in "+ (end - start) + " ms");
+        logger.info("-> in " + (end - start) + " ms");
     }
 
     @Override
     public void load(File model) throws Exception {
         if (trained) {
-            throw new VerifyError("LOAD: Model can not be overloaded! Create new emtpy Instance of markov!");
+            throw new VerifyError("Model can not be overloaded! Create new emtpy Instance of markov!");
         }
 
         long start = System.currentTimeMillis();
-        logger.info("READ: "+model.getAbsolutePath()+ " (" + (model.length() / 1024) + " kb)");
+        logger.info("reading " + model.getAbsolutePath() + " (" + (model.length() / 1024) + " kb)");
 
         GraphXmlHandler graphXmlHandler = new GraphXmlHandler();
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -260,7 +217,7 @@ public class Markov implements Predictor {
         parser.parse(model, graphXmlHandler);
 
 
-        logger.info("READ: adding " + graphXmlHandler.getListVertex().size() + " vertices");
+        logger.info("adding " + graphXmlHandler.getListVertex().size() + " vertices");
         for (String vertex : graphXmlHandler.getListVertex()) {
             String[] parts = vertex.split(":");
             String aa = parts[0].intern();
@@ -270,7 +227,7 @@ public class Markov implements Predictor {
             wintermute.addVertex(new Vertex(aa, sse, hp, wp));
         }
 
-        logger.info("READ: adding " + graphXmlHandler.getListEdge().size() + " edges");
+        logger.info("adding " + graphXmlHandler.getListEdge().size() + " edges");
         for (String edge : graphXmlHandler.getListEdge()) {
             String[] parts = edge.split(";");
 
@@ -306,17 +263,63 @@ public class Markov implements Predictor {
                 double old = Double.parseDouble(split[1]);
                 double act = ((double) wintermute.vertexSet().size() / (double) wintermute.edgeSet().size());
                 if (old == act) {
-                    logger.info("READ: model OK..");
+                    logger.info("model OK..");
                 } else {
-                    throw new VerifyError("READ: Model is corrupted and can not be read! Export new model!");
+                    throw new VerifyError("Model is corrupted and can not be read! Export new model!");
                 }
             }
             //verify end
 
             trained = true;
             long end = System.currentTimeMillis();
-            logger.info("READ: in " + (end - start) + " ms");
+            logger.info("-> in " + (end - start) + " ms");
 
+        }
+    }
+
+    private double round(double value) {
+        double result = value * hpRoundingValue;
+        result = Math.round(result);
+        result = result / hpRoundingValue;
+        return result;
+    }
+
+    private void checkEdge(Vertex source, SequencePosition spSource, Vertex target, boolean middle) {
+        if (middle) {
+            Result result = spSource.getRealClass();
+            if (result.equals(Result.INSIDE)) {
+                target = INSIDE;
+            } else if (result.equals(Result.OUTSIDE)) {
+                target = OUTSIDE;
+            } else if (result.equals(Result.TMH)) {
+                target = TMH;
+            }
+        }
+        Edge edge = wintermute.getEdge(source, target);
+        if (edge == null) {
+            if (!wintermute.containsVertex(source)) {
+                logger.fatal("WARNING: vertex source NOT contained: " + source);
+            }
+            if (!wintermute.containsVertex(target)) {
+                logger.fatal("WARNING: vertex target NOT contained: " + target);
+            }
+            wintermute.addEdge(source, target);
+        } else {
+            wintermute.setEdgeWeight(edge, (wintermute.getEdgeWeight(edge) + 1));
+        }
+    }
+
+    /**
+     * checks hpscale for staying the same during train and test
+     *
+     * @param scale
+     * @throws VerifyError if scale has changed within same instance of class
+     */
+    private void checkScale(int scale) {
+        if (hpscaleUsed == -1) {
+            hpscaleUsed = scale;
+        } else if (hpscaleUsed != scale) {
+            throw new VerifyError("Hydrophobocity scale has changed! Create new Instance of markov!");
         }
     }
 
@@ -348,5 +351,14 @@ public class Markov implements Predictor {
 
         String lastLine = sb.reverse().toString();
         return lastLine;
+    }
+
+    public void setMappingContValuesToNodes(double range) {
+        hpSteppingValue = range;
+        hpRoundingValue = 1 / range;
+    }
+
+    public Graph getGraph() {
+        return wintermute;
     }
 }
