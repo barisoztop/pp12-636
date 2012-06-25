@@ -15,6 +15,11 @@ public class Vertex {
     private final int windowPos;
     private final String id;
 
+    private int realClassInside = 0;
+    private int realClassOutside = 0;
+    private int realClassTmh = 0;
+    private int realClassNonTmh = 0;
+
     public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
         //aminoAcid:Sting
         this.aminoacid = aminoacid.intern();
@@ -96,4 +101,37 @@ public class Vertex {
     public int getWindowPos() {
         return windowPos;
     }
+
+    public int getRealClassInside() {
+        return realClassInside;
+    }
+
+    public void setRealClassInside(int realClassInside) {
+        this.realClassInside = realClassInside;
+    }
+
+    public int getRealClassNonTmh() {
+        return realClassNonTmh;
+    }
+
+    public void setRealClassNonTmh(int realClassNonTmh) {
+        this.realClassNonTmh = realClassNonTmh;
+    }
+
+    public int getRealClassOutside() {
+        return realClassOutside;
+    }
+
+    public void setRealClassOutside(int realClassOutside) {
+        this.realClassOutside = realClassOutside;
+    }
+
+    public int getRealClassTmh() {
+        return realClassTmh;
+    }
+
+    public void setRealClassTmh(int realClassTmh) {
+        this.realClassTmh = realClassTmh;
+    }
+    
 }
