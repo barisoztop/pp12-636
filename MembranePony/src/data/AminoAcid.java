@@ -1,7 +1,7 @@
 package data;
 
 public enum AminoAcid {
-	
+
 	        A, //ala -> alanin
 	        C, //cys -> cystein
 	        D, //asp -> asparaginsäure
@@ -22,6 +22,6 @@ public enum AminoAcid {
 	        V, //val -> valin
 	        W, //trp -> tryptophan
 	        Y, //tyr -> tyrosin
-	        X  //any
-	        
+//	        X  //any
+
 }

@@ -30,13 +30,16 @@ public class GraphXmlHandler extends DefaultHandler {
         if (qName.equals("node")) {
             listVertex.add(attributes.getValue("id"));
         } else if (qName.equals("edge")) {
-            String weight = attributes.getValue("id");
+//            String[] id = attributes.getValue("id").split(":");
+//
+//            String weight = id[0];
+//            String overInside = id[1];
+//            String overOutside = id[2];
+
+            String id = attributes.getValue("id");
             String source = attributes.getValue("source");
             String target = attributes.getValue("target");
-//            System.out.println("weight: "+weight);
-//            System.out.println("source: "+source);
-//            System.out.println("target: "+target);
-            listEdge.add(source+";"+target+";"+weight);
+            listEdge.add(source+";"+target+";"+id);
         }
     }
 
