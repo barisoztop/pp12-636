@@ -45,8 +45,8 @@ public class DataReader {
 	
 	
 	public static void main(String[] args) throws IOException {
-		File dataFolder = new File("N:\\temp\\ppdata\\dataset\\impOutput");
-		File structFile = new File("N:\\temp\\ppdata\\dataset\\imp_struct.fasta");
+		File dataFolder = new File("N:\\temp\\ppdata\\mini-dataset\\impOutput");
+		File structFile = new File("N:\\temp\\ppdata\\mini-dataset\\imp_struct.fasta");
 		int table = Hydrophobicity.KYTE_DOOLITTLE;
 		
 		readSequences(dataFolder, structFile, table);
@@ -137,7 +137,9 @@ public class DataReader {
 					throw(new IllegalStateException("Sequence length differs from sse length ("+seq.length()+" <> "+sse.length()+")"));
 				
 				
-				SequencePosition[] seqpos = new SequencePosition[seq.length()];
+//				SequencePosition[] seqpos = new SequencePosition[seq.length()];
+				LinkedList<SequencePosition> seqPos = new LinkedList<SequencePosition>();
+				
 				for(int i=0; i<seq.length(); i++) {
 					if(seq.charAt(i)==' ') {
 						logger.trace("CHAR SPACE "+i+" => "+seq);
@@ -154,10 +156,15 @@ public class DataReader {
 					double hydrophobicity = Hydrophobicity.get(aa, hydrophobiticyTable);
 					Result realClass = struct.realClasses[i];
 					
-					seqpos[i] = new SequencePositionImpl(aa, hydrophobicity, secstr, hydrophobiticyTable, realClass);
+					seqPos.add(new SequencePositionImpl(aa, hydrophobicity, secstr, hydrophobiticyTable, realClass));
 				}
+				
+				
+				//remove trailing 'null' elements from seqpos:
+				
+				
 								
-				Sequence s = new SequenceImpl(id, seqpos);
+				Sequence s = new SequenceImpl(id, seqPos.toArray(new SequencePosition[] {}));
 				sequences.add(s);
 				
 				logger.info("Sequence object for "+id+" built successfully.");
