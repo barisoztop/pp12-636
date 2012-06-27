@@ -21,7 +21,7 @@ public class Edge extends DefaultWeightedEdge {
     public double getWeight() {
         return super.getWeight();
     }
-
+    
     public void setOverInside(int i) {
         overInside = i;
     }

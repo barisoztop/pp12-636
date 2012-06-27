@@ -5,9 +5,10 @@ import data.Constants;
 import data.SSE;
 import interfaces.*;
 import java.io.*;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import markov.graph.*;
@@ -21,19 +22,23 @@ import org.jgrapht.ext.GraphMLExporter;
 public class Markov implements Predictor {
 
     private static final Logger logger = Logger.getLogger(Markov.class);
+    private Map<String, Vertex> mapVertex = new HashMap<String, Vertex>();
     private Graph<Vertex, Edge> wintermute;
+    private Normalizer norm;
     private double hpSteppingValue = 0.1d;
     private double hpRoundingValue = 10d;
     private int hpscaleUsed = -1;
     private static final double HP_MIN = -5.0d;
     private static final double HP_MAX = 6.0d;
     private boolean trained = false;
-    private Vertex[][] matrix;
+//    private Vertex[][] matrix;
+    private final int middle = (Constants.WINDOW_LENGTH / 2);
     public final Vertex TMH = new Vertex("TMH", "null", Double.NaN, -1);
     public final Vertex NON_TMH = new Vertex("NON_TMH", "null", Double.NaN, -1);
     public final Vertex OUTSIDE = new Vertex("OUTSIDE", "null", Double.NaN, -1);
     public final Vertex INSIDE = new Vertex("INSIDE", "null", Double.NaN, -1);
     public final Vertex GECONNYSE = new Vertex("GECONNYSE", "null", Double.NaN, -1);
+    private double normalizedMin = 0.000001d;
 
     public Markov() {
         logger.info("spawning new Markov Instance");
@@ -43,15 +48,16 @@ public class Markov implements Predictor {
         wintermute.addVertex(OUTSIDE);
         wintermute.addVertex(INSIDE);
         wintermute.addVertex(GECONNYSE);
-        int hpSteps = (int) ((HP_MAX - HP_MIN) / hpSteppingValue) + 1;
-        matrix = new Vertex[AminoAcid.values().length * SSE.values().length * hpSteps][Constants.WINDOW_LENGTH]; //[rows][columns]
+//        int hpSteps = (int) ((HP_MAX - HP_MIN) / hpSteppingValue) + 1;
+//        matrix = new Vertex[AminoAcid.values().length * SSE.values().length * hpSteps][Constants.WINDOW_LENGTH]; //[rows][columns]
     }
 
     private void addVertices() {
         long start = System.currentTimeMillis();
         logger.info("creating vertices");
         //create nodes and add them to the graph
-        for (int windowPos = 0; windowPos < matrix[0].length; windowPos++) {
+//        for (int windowPos = 0; windowPos < matrix[0].length; windowPos++) {
+        for (int windowPos = 0; windowPos < Constants.WINDOW_LENGTH; windowPos++) {
             //windowPos = the position of the vertex in the markov model [0 - (Constants.WINDOW_LENGTH - 1))
             int row = 0;
             for (int sse = 0; sse < SSE.values().length; sse++) {
@@ -66,8 +72,9 @@ public class Markov implements Predictor {
                         Vertex tmp = new Vertex(value_aa, value_sse, round(value_hp), windowPos);
                         logger.trace("created vertex: " + tmp);
                         value_hp += hpSteppingValue;
+                        mapVertex.put(value_aa.intern() + ":" + value_sse.intern() + ":" + round(value_hp) + ":" + windowPos, tmp);
                         wintermute.addVertex(tmp);
-                        matrix[row][windowPos] = tmp;
+//                        matrix[row][windowPos] = tmp;
                         row++;
                     }
                 }
@@ -106,16 +113,154 @@ public class Markov implements Predictor {
             throw new VerifyError("Can not predict with an empty model! Train it before!");
         }
         checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
-        Result[] predictions = new Result[sequence.length()];
+        List<Result> pred = new ArrayList<Result>();
+        Result[] predictions = new Result[1];
 
-        //NORMALIZE
-        //todo
 
-        //CLASSIFY: naiveBayes
-        //todo
+        //normalize
+
+        //classify
+
+        for (SlidingWindow slidingWindow : sequence.getWindows()) {
+            Vertex vertexMiddle = null;
+            SequencePosition spMiddle = null;
+            double value = 0d;
+
+            for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+                SequencePosition spSource = slidingWindow.getSequence()[i];
+                SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+
+                //source
+                if (spSource == null) {
+                    continue;
+                }
+
+                String sourceAa = spSource.getAminoAcid().toString().intern();
+                String sourceSse = spSource.getSecondaryStructure().toString().intern();
+                Double sourceHp = round(spSource.getHydrophobicity());
+                Vertex vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp + ":" + i);
+//
+//                //check if vertex source is in the middle of the window
+//                //if yes -> backup
+                if (i == middle) {
+                    vertexMiddle = vertexSource;
+                    spMiddle = spSource;
+                }
+
+                //target
+                if (spTarget != null) {
+//                    //if null, just ignore the lame target
+                    String targetAa = spTarget.getAminoAcid().toString().intern();
+                    String targetSse = spTarget.getSecondaryStructure().toString().intern();
+                    Double targetHp = round(spTarget.getHydrophobicity());
+                    Vertex vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp + ":" + (i + 1));
+//
+//                    //link the source and target vertices
+                    Edge e = wintermute.getEdge(vertexSource, vertexTarget);
+//                    System.out.println(spSource + " | " + spTarget + " window: " + slidingWindow.getWindowIndex());
+//                    System.out.println("edge: " + e.getWeight());
+                    if (e == null) {
+                        value += normalizedMin;
+                    } else {
+                        value += e.getWeight();
+                    }
+                }
+
+
+            }
+//            System.out.print("value: " + value + " -> ");
+//            System.out.println("middle: " + vertexMiddle.toString() + ":" + vertexMiddle.getRealClassInside() + ":"
+//                    + vertexMiddle.getRealClassOutside() + ":" + vertexMiddle.getRealClassNonTmh()
+//                    + ":" + vertexMiddle.getRealClassTmh());
+
+            int[] out = new int[4];
+//            out[0] = (int) (vertexMiddle.getRealClassInside() / value);
+//            out[1] = (int) (vertexMiddle.getRealClassOutside() / value);
+            out[2] = (int) (vertexMiddle.getRealClassNonTmh() / value);
+            out[3] = (int) (vertexMiddle.getRealClassTmh() / value);
+            int pos = -1;
+            int max = Integer.MIN_VALUE;
+            for (int i = 0; i < out.length; i++) {
+                if (out[i] > max) {
+                    max = out[i];
+                    pos = i;
+                }
+            }
+            Result tmp = null;
+            if (pos == 0) {
+                tmp = Result.INSIDE;
+            } else if (pos == 1) {
+                tmp = Result.OUTSIDE;
+            } else if (pos == 2) {
+                tmp = Result.NON_TMH;
+            } else if (pos == 3) {
+                tmp = Result.TMH;
+            }
+            pred.add(tmp);
+//            Edge eIn = wintermute.getEdge(vertexMiddle, INSIDE);
+//             if (eIn==null) System.out.println("eIn=null");
+//            Edge eOut = wintermute.getEdge(vertexMiddle, OUTSIDE);
+//            if (eOut==null) System.out.println("eOut=null");
+//            Edge eNon = wintermute.getEdge(vertexMiddle, NON_TMH);
+//            if (eNon == null) {
+//                System.out.println("eNon=null");
+//            }
+//            Edge eTmh = wintermute.getEdge(vertexMiddle, TMH);
+//            if (eTmh == null) {
+//                System.out.println("eTmh=null");
+//            }
+
+
+//            System.out.println("\tREAL: " + spMiddle.getRealClass());
+//            System.out.println("\tPRED: " + tmp);
+////            System.out.println("\tINSIDE: " + ((int) (vertexMiddle.getRealClassInside() / value))+" -> edge: w:"+eIn.getWeight()+":"+eIn.getOverInside()+":"+eIn.getOverOutside());
+////            System.out.println("\tOUTSIDE: " + ((int) (vertexMiddle.getRealClassOutside() / value))+" -> edge: w:"+eOut.getWeight()+":"+eOut.getOverInside()+":"+eOut.getOverOutside());
+//            if (eNon == null) {
+//                System.out.println("\tNON_TMH: IGNORED -> NULL");
+//            } else {
+//                System.out.println("\tNON_TMH: " + ((int) (vertexMiddle.getRealClassNonTmh() / value)) + " -> edge: w:" + eNon.getWeight() + ":" + eNon.getOverInside() + ":" + eNon.getOverOutside());
+//            }
+//            if (eTmh == null) {
+//                System.out.println("\tTMH: IGNORED -> NULL");
+//            } else {
+//                System.out.println("\tTMH: " + ((int) (vertexMiddle.getRealClassTmh() / value)) + " -> edge: w:" + eTmh.getWeight() + ":" + eTmh.getOverInside() + ":" + eTmh.getOverOutside());
+//            }
+            //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
+//            logger.trace("SequencePosition: middle " + spMiddle);
+//            checkEdge(vertexMiddle, spMiddle, null, null, true);
+
+        }
+
         //if edge does not exist -> weight = 0
+        predictions = pred.toArray(predictions);
+//        System.out.print("REAL: ");
+//        for (SequencePosition sequencePosition : sequence.getSequence()) {
+//            System.out.print(sequencePosition.getRealClass()+" ");
+//        }
+//        System.out.print("\nPRED: ");
+//        for (Result result : predictions) {
+//            System.out.print(result+" ");
+//        }
+        int cTp = 0;
+        int cFp = 0;
+        for (int i = 0; i < predictions.length; i++) {
+            Result real = sequence.getSequence()[i].getRealClass();
+            Result predi = predictions[i];
+            if (real == Result.INSIDE || real == Result.OUTSIDE) {
+                real = Result.NON_TMH;
+            }
+            if (real == predi) {
+                cTp++;
+            } else {
+                cFp++;
+            }
+        }
 
 
+//        System.out.println("ALL: " + predictions.length);
+//        System.out.println("TRUE POSITIVE: " + cTp);
+//        System.out.println("FALSE POSITIVE: " + cFp);
+//        System.out.println("RATIO: " + ((double) cTp / (double) (cTp + cFp)));
         return new GenericPrediction(sequence, predictions);
     }
 
@@ -128,11 +273,8 @@ public class Markov implements Predictor {
         long start = System.currentTimeMillis();
         logger.info("training " + trainingCases.length + " sequences");
         checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
-        int middle = (Constants.WINDOW_LENGTH / 2);
         for (Sequence sequence : trainingCases) {
             for (SlidingWindow slidingWindow : sequence.getWindows()) {
-//                System.out.println("slidingWindow: "+slidingWindow.getWindowIndex()
-//                        +" -> "+slidingWindow.getSequence()[0]+" -> "+slidingWindow.getSequence()[slidingWindow.getSequence().length-1]);
                 Vertex vertexMiddle = null;
                 SequencePosition spMiddle = null;
 
@@ -149,7 +291,7 @@ public class Markov implements Predictor {
                     String sourceAa = spSource.getAminoAcid().toString().intern();
                     String sourceSse = spSource.getSecondaryStructure().toString().intern();
                     Double sourceHp = round(spSource.getHydrophobicity());
-                    Vertex vertexSource = new Vertex(sourceAa, sourceSse, sourceHp, i);
+                    Vertex vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp + ":" + i);
 
                     //check if vertex source is in the middle of the window
                     //if yes -> backup
@@ -164,7 +306,7 @@ public class Markov implements Predictor {
                         String targetAa = spTarget.getAminoAcid().toString().intern();
                         String targetSse = spTarget.getSecondaryStructure().toString().intern();
                         Double targetHp = round(spTarget.getHydrophobicity());
-                        Vertex vertexTarget = new Vertex(targetAa, targetSse, targetHp, i + 1);
+                        Vertex vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp + ":" + (i + 1));
 
                         //link the source and target vertices
                         checkEdge(vertexSource, spSource, vertexTarget, spTarget, false);
@@ -178,6 +320,9 @@ public class Markov implements Predictor {
         trained = true;
         long end = System.currentTimeMillis();
         logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
+        norm = new Normalizer(wintermute);
+        norm.normalize();
+        normalizedMin = norm.getNormalizedMin();
     }
 
     @Override
@@ -194,8 +339,12 @@ public class Markov implements Predictor {
         g.export(bw, wintermute);
 
         //verify begin
+//        edge.getWeight()+":"+edge.getOverInside()+":"+edge.getOverOutside();
+        bw.write("<!-- vertex=aa(enum):sse(enum):hp(Double):windowPos(int):inside(int):outside(int):nontmh(int):tmh(int) -->\n");
+        bw.write("<!-- edge_id=weight(double):inside(int):outside(int) | edge_source/target vertex=@vertex -->\n");
+        bw.write("<!-- normalizedMin:" + normalizedMin + " -->");
         bw.write("<!-- ");
-        bw.write("wintermute:" + ((double) wintermute.vertexSet().size() / (double) wintermute.edgeSet().size()) + ":");
+        bw.write("wintermute:" + ((double) wintermute.edgeSet().size() / (double) wintermute.vertexSet().size()) + ":");
         bw.write(" -->");
         //verify end
 
@@ -305,9 +454,9 @@ public class Markov implements Predictor {
             String[] split = shc.split(" ")[1].split(":");
             if (split[0].equals("wintermute")) {
                 double old = Double.parseDouble(split[1]);
-                double act = ((double) wintermute.vertexSet().size() / (double) wintermute.edgeSet().size());
+                double act = ((double) wintermute.edgeSet().size() / (double) wintermute.vertexSet().size());
                 if (old == act) {
-                    logger.info("model OK..");
+                    logger.info("model is OK and not corrupted");
                 } else {
                     throw new VerifyError("Model is corrupted and can not be read! Export new model!"
                             + "\nvertexSet: " + wintermute.vertexSet().size() + " | edgeSet: " + wintermute.edgeSet().size()
