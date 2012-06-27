@@ -43,7 +43,7 @@ public class NeuralPrediction implements Prediction{
             return this.results[residueNr];
         }else{
             throw new IllegalArgumentException("Residue at position "+residueNr+" is not"
-                    + "available.");
+                    + "available. Please run prediction first.");
         }
     }
 

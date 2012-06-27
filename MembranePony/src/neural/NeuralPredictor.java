@@ -1,8 +1,10 @@
 package neural;
 
+import data.AminoAcid;
 import interfaces.Prediction;
 import interfaces.Predictor;
 import interfaces.Sequence;
+import interfaces.SlidingWindow;
 import java.io.File;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.SupervisedTrainingElement;
@@ -139,7 +141,15 @@ public class NeuralPredictor implements Predictor{
      */
     private void generateTrainingSet(Sequence[] trainingCases, TrainingSet<SupervisedTrainingElement> trainingSet){
         for(Sequence s : trainingCases){
+          
+            SlidingWindow[] seqWindows = s.getWindows();
             
+            for(SlidingWindow window : seqWindows){
+                
+                for(int i=0; i<window.getSequence().length; i++){
+                    
+                }              
+            }          
         }
     }
 
@@ -186,5 +196,19 @@ public class NeuralPredictor implements Predictor{
      */
     public int getNumberOfOutputNeurons(){
         return this.outputN;
+    }
+    
+    /**
+     * 
+     * @param aa
+     * @return 
+     */
+    private double mapAAsOntoDoubleValues(AminoAcid aa){
+        switch(aa){
+            case A : return 1.0;
+            
+            
+            default : return 0.0;
+        }
     }
 }
