@@ -72,15 +72,34 @@ public class NeuralPredictor implements Predictor{
                     + "from harddisk. Please use load method to load it.");
         }
         
-        LinkedList<Result> results = new LinkedList<Result>();
+        LinkedList<Double> inputVector = new LinkedList<Double>();
+        LinkedList<Result[]> output = new LinkedList<Result[]>();
         
         for(SlidingWindow window : sequence.getWindows()){
             
+            inputVector.clear();
+            
+            for(int i=0; i<window.getSequence().length; i++){
+               
+                SequencePosition pos = window.getSequence()[i];
+                
+                inputVector.add(mapAAsOntoDoubleValues(pos.getAminoAcid()));
+                inputVector.add(pos.getHydrophobicity());
+                inputVector.add(mapSSEontoDoubleValues(pos.getSecondaryStructure()));
+            }
+            
+            //predict
+            this.neuralNetwork.setInput(doubleLinkedListToDoubleArray(inputVector));
+            this.neuralNetwork.calculate();
+            
+            //get output
+            output.add(mapDoubleValuesOntoResult(this.neuralNetwork.getOutput()));
         }
         
-        
-        
-        return null;
+        //Why do we give back just one result array for the whole sequence? 
+        //Should'nt we give back an array of result arrays according to each window which 
+        //has been preidicted? Maybe we have to adapt the interfaces...
+        return new NeuralPrediction(sequence, null, output);
     }
     
     /**
@@ -128,18 +147,6 @@ public class NeuralPredictor implements Predictor{
      */
     public NeuralNetwork getNeuralNetWork(){
         return this.neuralNetwork;
-    }
-
-    /**
-     * Returns the output of the neurtal network after prediction
-     * @return
-     */
-    public double[] getNNOutput(){
-        if(task == NeuralTask.PREDICTION){
-            return this.neuralNetwork.getOutput();
-        }else{
-            throw new IllegalStateException("Output of NN cannot be delivered in training mode.");
-        }
     }
 
     /**
@@ -263,16 +270,24 @@ public class NeuralPredictor implements Predictor{
      * @param d
      * @return 
      */
-    private Result mapDoubleValuesOntoResult(double d){
+    private Result[] mapDoubleValuesOntoResult(double[] d){
         
-        switch((int) d){
-            case 1  : return Result.INSIDE;
-            case 2  : return Result.OUTSIDE;
-            case 3  : return Result.TMH;
-            case 4  : return Result.NON_TMH;
+        Result[] results = new Result[d.length];
+        
+        for(int i=0; i<d.length; i++){
+            
+            switch((int) d[i]){
                 
-            default : return null;    
+                case 1  : results[i]=Result.INSIDE; break;
+                case 2  : results[i]=Result.OUTSIDE; break;
+                case 3  : results[i]=Result.TMH; break;
+                case 4  : results[i]=Result.NON_TMH;
+                
+                default : results[i]=null;    
+             }   
         }
+        
+        return results;
     }
     
     /**
@@ -282,7 +297,11 @@ public class NeuralPredictor implements Predictor{
      */
     private double mapAAsOntoDoubleValues(AminoAcid aa){
         
+        //maybe here it is neccessary to play with the mapped values, eg
+        //-10 to 10 etc..., depends how the neural network will work
+        
         switch(aa){
+            
             case A  : return 1.0;
             case C  : return 2.0;
             case D  : return 3.0;

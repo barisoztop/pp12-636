@@ -18,10 +18,12 @@ public class NeuralPrediction implements Prediction{
     
     private Sequence sequence;
     private Result[] results;
+    private LinkedList<Result[]> moreResults;
             
-    public NeuralPrediction(Sequence seq, Result[] results){
+    public NeuralPrediction(Sequence seq, Result[] results, LinkedList<Result[]> moreRes){
         this.sequence = seq;
         this.results = results;
+        this.moreResults = moreRes;
     }
     
     /**
@@ -31,6 +33,14 @@ public class NeuralPrediction implements Prediction{
     @Override
     public Sequence getInputSequence() {
         return this.sequence;
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    public LinkedList<Result[]> getResults(){
+        return this.moreResults;
     }
     
     /**
@@ -71,11 +81,19 @@ public class NeuralPrediction implements Prediction{
                 continue;
             }
             
+            if(i==results.length-1 && tempResult!=results[i]){
+                regions.add(new Region(i, i, results[i]));
+            }
+            
+            if(i==results.length-1 && tempResult==results[i]){
+                regions.add(new Region(start, i, tempResult));
+            }
+            
             if(tempResult!=results[i]){     
                 regions.add(new Region(start, i-1, tempResult));
                 tempResult = results[i];
                 start = i;
-            }
+            }         
         }
         
         return regionListToArray(regions);    

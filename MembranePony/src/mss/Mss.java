@@ -56,7 +56,10 @@ public class Mss {
         return mssGetStartEndPoints;
     }
 
-    
+    /**
+     * 
+     * @param mssResults 
+     */
     private static void findAndRemoveMinimum(LinkedList<MssResult> mssResults){
         
         MssResult minRes = mssResults.get(0);
