@@ -18,12 +18,10 @@ public class NeuralPrediction implements Prediction{
     
     private Sequence sequence;
     private Result[] results;
-    private LinkedList<Result[]> moreResults;
             
-    public NeuralPrediction(Sequence seq, Result[] results, LinkedList<Result[]> moreRes){
+    public NeuralPrediction(Sequence seq, Result[] results){
         this.sequence = seq;
         this.results = results;
-        this.moreResults = moreRes;
     }
     
     /**
@@ -33,14 +31,6 @@ public class NeuralPrediction implements Prediction{
     @Override
     public Sequence getInputSequence() {
         return this.sequence;
-    }
-    
-    /**
-     * 
-     * @return 
-     */
-    public LinkedList<Result[]> getResults(){
-        return this.moreResults;
     }
     
     /**

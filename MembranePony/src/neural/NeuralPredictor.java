@@ -99,7 +99,7 @@ public class NeuralPredictor implements Predictor{
         //Why do we give back just one result array for the whole sequence? 
         //Should'nt we give back an array of result arrays according to each window which 
         //has been preidicted? Maybe we have to adapt the interfaces...
-        return new NeuralPrediction(sequence, null, output);
+        return new NeuralPrediction(sequence, output.get(0)); //???????????????????
     }
     
     /**
@@ -278,12 +278,17 @@ public class NeuralPredictor implements Predictor{
             
             switch((int) d[i]){
                 
-                case 1  : results[i]=Result.INSIDE; break;
-                case 2  : results[i]=Result.OUTSIDE; break;
-                case 3  : results[i]=Result.TMH; break;
-                case 4  : results[i]=Result.NON_TMH;
+                case 1  : results[i]=Result.INSIDE; 
+                            break;
+                case 2  : results[i]=Result.OUTSIDE; 
+                            break;
+                case 3  : results[i]=Result.TMH; 
+                            break;
+                case 4  : results[i]=Result.NON_TMH; 
+                            break;
                 
-                default : results[i]=null;    
+                default : results[i]=null; 
+                            break;    
              }   
         }
         
@@ -341,5 +346,13 @@ public class NeuralPredictor implements Predictor{
                 
             default     : return 0.0;    
         }
+    }
+    
+    /**
+     * For testing purpose only
+     * @param args 
+     */
+    public static void main(String[] args){
+        
     }
 }
