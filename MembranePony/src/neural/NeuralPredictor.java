@@ -71,7 +71,15 @@ public class NeuralPredictor implements Predictor{
             throw new IllegalStateException("Neural Network was not loaded"
                     + "from harddisk. Please use load method to load it.");
         }
-              
+        
+        LinkedList<Result> results = new LinkedList<Result>();
+        
+        for(SlidingWindow window : sequence.getWindows()){
+            
+        }
+        
+        
+        
         return null;
     }
     
@@ -238,7 +246,8 @@ public class NeuralPredictor implements Predictor{
      * @param res
      * @return 
      */
-    public double mapResultOntoDoubleValues(Result res){
+    private double mapResultOntoDoubleValues(Result res){
+        
         switch(res){
             case INSIDE     : return 1.0;
             case OUTSIDE    : return 2.0;
@@ -251,10 +260,28 @@ public class NeuralPredictor implements Predictor{
     
     /**
      * 
+     * @param d
+     * @return 
+     */
+    private Result mapDoubleValuesOntoResult(double d){
+        
+        switch((int) d){
+            case 1  : return Result.INSIDE;
+            case 2  : return Result.OUTSIDE;
+            case 3  : return Result.TMH;
+            case 4  : return Result.NON_TMH;
+                
+            default : return null;    
+        }
+    }
+    
+    /**
+     * 
      * @param aa
      * @return 
      */
     private double mapAAsOntoDoubleValues(AminoAcid aa){
+        
         switch(aa){
             case A  : return 1.0;
             case C  : return 2.0;
@@ -287,6 +314,7 @@ public class NeuralPredictor implements Predictor{
      * @return 
      */
     private double mapSSEontoDoubleValues(SSE sse){
+        
         switch(sse){
             case Helix  : return 1.0;
             case Coil   : return 2.0;
