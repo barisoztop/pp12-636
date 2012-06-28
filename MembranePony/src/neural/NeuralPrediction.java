@@ -8,6 +8,7 @@ import interfaces.Prediction;
 import interfaces.Region;
 import interfaces.Result;
 import interfaces.Sequence;
+import java.util.LinkedList;
 
 /**
  *
@@ -46,9 +47,53 @@ public class NeuralPrediction implements Prediction{
                     + "available. Please run prediction first.");
         }
     }
-
+    
+    /**
+     * 
+     * @return 
+     */
     @Override
     public Region[] getPredictedRegions() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }    
+        
+        if(results==null){
+            throw new UnsupportedOperationException("No results available.");
+        }
+        
+        LinkedList<Region> regions = new LinkedList<Region>();
+        Result tempResult=null;
+        int start=0;
+               
+        for(int i=0; i<results.length; i++){
+            
+            if(tempResult==null){
+                start = i;
+                tempResult = results[i];
+                continue;
+            }
+            
+            if(tempResult!=results[i]){     
+                regions.add(new Region(start, i-1, tempResult));
+                tempResult = results[i];
+                start = i;
+            }
+        }
+        
+        return regionListToArray(regions);    
+    }
+    
+    /**
+     * 
+     * @param regions
+     * @return 
+     */
+    private Region[] regionListToArray(LinkedList<Region> regions){
+        
+        Region[] regs = new Region[regions.size()];
+        
+        for(int i=0; i<regions.size(); i++){
+            regs[i] = regions.get(i);
+        }
+        
+        return regs;
+    }
 }
