@@ -15,7 +15,8 @@ public class Normalizer {
 
     private static final Logger logger = Logger.getLogger(Normalizer.class);
     private final Graph<Vertex, Edge> graph;
-    private final DirectedNeighborIndex<Vertex, Edge> neighbor;
+//    private final DirectedNeighborIndex<Vertex, Edge> neighbor;
+    private DirectedNeighborIndex<Vertex, Edge> neighbor;
     private double min = Double.POSITIVE_INFINITY;
 
     public Normalizer(Graph graph) {
@@ -25,6 +26,37 @@ public class Normalizer {
 
     public void normalize() {
         long start = System.currentTimeMillis();
+        int counter = 0;
+        logger.warn("NORMALIZER IS CURRENTLY AT DEBUG STATE -> ALL EDGES WITH WEIGHT <= 1.0 WILL BE DELETED1");
+//        System.out.println("EDGES BEFORE: " + graph.edgeSet().size());
+        for (Vertex outerVertex : graph.vertexSet()) {
+//            ArrayList<Edge> listEdge = new ArrayList<Edge>();
+//            double sum = 0d;
+            for (Vertex target : neighbor.successorListOf(outerVertex)) {
+                Edge e = graph.getEdge(outerVertex, target);
+                if (e.getWeight() <= 1.0) {
+                    counter++;
+                    graph.removeEdge(e);
+                }
+//                listEdge.add(e);
+//                sum += graph.getEdgeWeight(e);
+            }
+//            for (Edge e : listEdge) {
+//                double value = graph.getEdgeWeight(e) / sum;
+//                if (value < min) {
+//                    min = value;
+//                }
+//                graph.setEdgeWeight(e, value);
+//            }
+        }
+        neighbor = new DirectedNeighborIndex(this.graph);
+//        System.out.println("EDGES REMOVED: " + counter);
+//        System.out.println("EDGE AFTER: " + graph.edgeSet().size());
+//        long end = System.currentTimeMillis();
+//        logger.info("EDGES WITH WEIGHT 1.0 in " + (end - start) + " ms");
+
+
+//        long start = System.currentTimeMillis();
         for (Vertex outerVertex : graph.vertexSet()) {
             ArrayList<Edge> listEdge = new ArrayList<Edge>();
             double sum = 0d;
@@ -41,28 +73,10 @@ public class Normalizer {
                 graph.setEdgeWeight(e, value);
             }
         }
-
-        //OLD
-//        double[][] matrixEdgeWeights = markovGraph.getMatrixEdgeWeights();
-//        boolean[][] matrixSafety = markovGraph.getMatrixSafety();
-//        for (int r = 0; r < matrixEdgeWeights.length; r++) {
-//            double sum = 0d;
-//            ArrayList<Integer> tmpPos = new ArrayList<>();
-//            for (int c = 0; c < matrixEdgeWeights[0].length; c++) {
-//                if (matrixSafety[r][c]) {
-//                    sum += matrixEdgeWeights[r][c];
-//                    tmpPos.add(c);
-//                }
-//            }
-//            for (int i = 0; i < tmpPos.size(); i++) {
-//                double value = (matrixEdgeWeights[r][tmpPos.get(i)] / sum);
-//                markovGraph.getMatrixEdgeWeights()[r][tmpPos.get(i)] = value;
-//                markovGraph.getGraph().setEdgeWeight(markovGraph.getEdge(r, tmpPos.get(i)), value);
-//            }
-//        }
-//    }
         long end = System.currentTimeMillis();
         logger.info("normalized in " + (end - start) + " ms");
+
+
     }
 
     public double getNormalizedMin() {

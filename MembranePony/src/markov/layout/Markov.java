@@ -342,10 +342,8 @@ public class Markov implements Predictor {
 //        edge.getWeight()+":"+edge.getOverInside()+":"+edge.getOverOutside();
         bw.write("<!-- vertex=aa(enum):sse(enum):hp(Double):windowPos(int):inside(int):outside(int):nontmh(int):tmh(int) -->\n");
         bw.write("<!-- edge_id=weight(double):inside(int):outside(int) | edge_source/target vertex=@vertex -->\n");
-        bw.write("<!-- normalizedMin:" + normalizedMin + " -->");
-        bw.write("<!-- ");
-        bw.write("wintermute:" + ((double) wintermute.edgeSet().size() / (double) wintermute.vertexSet().size()) + ":");
-        bw.write(" -->");
+        bw.write("<!-- normalizedMin:" + normalizedMin + " -->\n");
+        bw.write("<!-- wintermute:" + ((double) wintermute.edgeSet().size() / (double) wintermute.vertexSet().size()) + " -->");
         //verify end
 
         bw.flush();
