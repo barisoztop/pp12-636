@@ -5,13 +5,10 @@
 package markov;
 
 import data.Hydrophobicity;
-import evaluation.Evaluation;
-import evaluation.EvaluationResult;
 import input.DataReader;
 import input.RandomSequenceGenerator;
 import interfaces.Sequence;
 import java.io.File;
-import java.util.Random;
 import markov.layout.Markov;
 import org.apache.log4j.Logger;
 
@@ -31,19 +28,18 @@ public class Test {
 
 
 //        Sequence[] seqs = DataReader.readSequences(dataFolder, structFile, table);
-//        m.train(seqs);
-//        m.predict(seqs[4]);
+        Sequence[] seqs = RandomSequenceGenerator.generate(333);
+        m.train(seqs);
+        m.predict(seqs[2]);
 //        m.save(new File("markovREALDATA_10seqs.graph"));
 //        m.save(new File("markovNEWREALDATA.txt"));
-
-		Sequence[] sequences = DataReader.readSequences(dataFolder, structFile, table);
-
-		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
-
-		EvaluationResult result = eval.evaluate();
+//		Sequence[] sequences = DataReader.readSequences(dataFolder, structFile, table);
 //
-		System.out.println(result);
-
+//		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
+//
+//		EvaluationResult result = eval.evaluate();
+//
+//		System.out.println(result);
 
 
 //        int max = 333;
@@ -53,6 +49,14 @@ public class Test {
 ////            logger.info(sequence.getId() + "\t=>\t" + Arrays.toString(sequence.getSequence()));
 ////        }
 //        m.train(generated);
+////        Vertex v = m.getVertexReference(AminoAcid.L.toString()+":"+SSE.Helix.toString()+":"+(5.6d)+":"+6);
+////        for (Edge edge : m.getGraph().edgeSet()) {
+////            Vertex source = m.getGraph().getEdgeSource(edge);
+////            System.out.println("vertex: "+source+" -> "+m.getGraph().outDegreeOf(source));
+////            for (Edge edge1 : m.getGraph().outgoingEdgesOf(source)) {
+////                System.out.println("\tedge: "+edge1);
+////            }
+////        }
 //        int scale = generated[0].getSequence()[0].getHydrophobicityMatrix();
 //        generated = RandomSequenceGenerator.generate(max);
 //        while (scale!=generated[0].getSequence()[0].getHydrophobicityMatrix()) {
@@ -62,10 +66,10 @@ public class Test {
 //            m.predict(generated[rnd.nextInt((max-1))]);
 //
 //        }
-//        m.train(RandomSequenceGenerator.generate(100));
+////        m.train(RandomSequenceGenerator.generate(100));
 //        m.save(new File("markov.graph"));
-//        m = new Markov();
-//        m.load(new File("markov.graph"));
-//        m.save(new File("markov_NEW.graph"));
+////        m = new Markov();
+////        m.load(new File("markov.graph"));
+////        m.save(new File("markov_NEW.graph"));
     }
 }
