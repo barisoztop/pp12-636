@@ -125,6 +125,8 @@ public class Markov implements Predictor {
             Vertex vertexMiddle = null;
             SequencePosition spMiddle = null;
             double value = 0d;
+            double a = 1d;
+            double b = 1d;
 
             for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
                 SequencePosition spSource = slidingWindow.getSequence()[i];
@@ -160,15 +162,19 @@ public class Markov implements Predictor {
 //                    System.out.println(spSource + " | " + spTarget + " window: " + slidingWindow.getWindowIndex());
 //                    System.out.println("edge: " + e.getWeight());
                     if (e == null) {
-                        value += normalizedMin;
+                        value = normalizedMin;
                     } else {
-                        value += e.getWeight();
+                        value = e.getWeight();
                     }
+                    double weight = value;
+                    a *= weight;
+                    b *= (1 - weight);
                 }
 
 
             }
-//            System.out.print("value: " + value + " -> ");
+//            double classificationProbability = a / (a + b);
+//            System.out.print("classificationProbability: " + classificationProbability + " -> ");
 //            System.out.println("middle: " + vertexMiddle.toString() + ":" + vertexMiddle.getRealClassInside() + ":"
 //                    + vertexMiddle.getRealClassOutside() + ":" + vertexMiddle.getRealClassNonTmh()
 //                    + ":" + vertexMiddle.getRealClassTmh());
@@ -176,8 +182,10 @@ public class Markov implements Predictor {
             int[] out = new int[4];
 //            out[0] = (int) (vertexMiddle.getRealClassInside() / value);
 //            out[1] = (int) (vertexMiddle.getRealClassOutside() / value);
-            out[2] = (int) (vertexMiddle.getRealClassNonTmh() / value);
-            out[3] = (int) (vertexMiddle.getRealClassTmh() / value);
+//            out[2] = (int) (vertexMiddle.getRealClassNonTmh() / value);
+//            out[3] = (int) (vertexMiddle.getRealClassTmh() / value);
+            out[2] = (int) (vertexMiddle.getRealClassNonTmh() / wintermute.getEdge(vertexMiddle, NON_TMH).getWeight());
+            out[3] = (int) (vertexMiddle.getRealClassTmh() / wintermute.getEdge(vertexMiddle, TMH).getWeight());
             int pos = -1;
             int max = Integer.MIN_VALUE;
             for (int i = 0; i < out.length; i++) {
@@ -211,8 +219,10 @@ public class Markov implements Predictor {
 //            }
 
 
-//            System.out.println("\tREAL: " + spMiddle.getRealClass());
-//            System.out.println("\tPRED: " + tmp);
+            System.out.println("REAL: " + spMiddle.getRealClass());
+            System.out.println("PRED: " + tmp);
+            System.out.println("\tNONTMH: "+out[2]);
+            System.out.println("\tTMH: "+out[3]);
 ////            System.out.println("\tINSIDE: " + ((int) (vertexMiddle.getRealClassInside() / value))+" -> edge: w:"+eIn.getWeight()+":"+eIn.getOverInside()+":"+eIn.getOverOutside());
 ////            System.out.println("\tOUTSIDE: " + ((int) (vertexMiddle.getRealClassOutside() / value))+" -> edge: w:"+eOut.getWeight()+":"+eOut.getOverInside()+":"+eOut.getOverOutside());
 //            if (eNon == null) {
@@ -604,7 +614,15 @@ public class Markov implements Predictor {
         hpRoundingValue = 1 / range;
     }
 
-    public Graph getGraph() {
+    public Graph<Vertex, Edge> getGraph() {
         return wintermute;
+    }
+
+    public Vertex getVertexReference(String id) {
+        if (mapVertex.containsKey(id)) {
+            return mapVertex.get(id);
+        } else {
+            return null;
+        }
     }
 }
