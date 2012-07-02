@@ -25,8 +25,8 @@ public class Test {
 
     public static void main(String[] args) throws Exception {
         Markov m = new Markov();
-        File dataFolder = new File("E:\\Dropbox\\ProteinPrediction\\mini-dataset\\impOutput");
-        File structFile = new File("E:\\Dropbox\\ProteinPrediction\\mini-dataset\\imp_struct.fasta");
+        File dataFolder = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
+        File structFile = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\imp_struct.fasta");
         int table = Hydrophobicity.KYTE_DOOLITTLE;
 
 
@@ -34,13 +34,14 @@ public class Test {
 //        m.train(seqs);
 //        m.predict(seqs[4]);
 //        m.save(new File("markovREALDATA_10seqs.graph"));
+//        m.save(new File("markovNEWREALDATA.txt"));
 
 		Sequence[] sequences = DataReader.readSequences(dataFolder, structFile, table);
-		
+
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 
 		EvaluationResult result = eval.evaluate();
-
+//
 		System.out.println(result);
 
 
