@@ -1,6 +1,7 @@
 package input;
 
 import data.Constants;
+import interfaces.Result;
 import interfaces.Sequence;
 import interfaces.SequencePosition;
 import interfaces.SlidingWindow;
@@ -51,6 +52,15 @@ public class SequenceImpl implements Sequence {
         }
 
         return result;
+    }
+    
+    @Override
+    public boolean containsTransmembrane() {
+    	for(SequencePosition p : sequence)
+    		if(p.getRealClass()==Result.TMH)
+    			return true;
+    	
+    	return false;
     }
 
     @Override

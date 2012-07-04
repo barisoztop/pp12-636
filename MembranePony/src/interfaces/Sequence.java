@@ -39,5 +39,12 @@ public interface Sequence {
 	public SlidingWindow[] getWindows();
 	
 	public int length();
+
+	/**
+	 * 
+	 * @return true if the sequence contains a transmembrane region, false otherwise. will not
+	 * work for test sets etc. where no class attributes are present.
+	 */
+	public boolean containsTransmembrane();
 	
 }
