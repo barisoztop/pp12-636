@@ -1,8 +1,8 @@
 package markov;
 
-import markov.layout.Markov;
 import interfaces.Predictor;
 import interfaces.PredictorFactory;
+import markov.layout.Markov;
 
 /**
  * predictor factory for markov predictor. everyone except robert should use

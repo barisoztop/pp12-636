@@ -30,12 +30,6 @@ public class GraphXmlHandler extends DefaultHandler {
         if (qName.equals("node")) {
             listVertex.add(attributes.getValue("id"));
         } else if (qName.equals("edge")) {
-//            String[] id = attributes.getValue("id").split(":");
-//
-//            String weight = id[0];
-//            String overInside = id[1];
-//            String overOutside = id[2];
-
             String id = attributes.getValue("id");
             String source = attributes.getValue("source");
             String target = attributes.getValue("target");

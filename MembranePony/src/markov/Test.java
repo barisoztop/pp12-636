@@ -5,8 +5,9 @@
 package markov;
 
 import data.Hydrophobicity;
+import evaluation.Evaluation;
+import evaluation.EvaluationResult;
 import input.DataReader;
-import input.RandomSequenceGenerator;
 import interfaces.Sequence;
 import java.io.File;
 import markov.layout.Markov;
@@ -21,25 +22,40 @@ public class Test {
     private static final Logger logger = Logger.getLogger(Test.class);
 
     public static void main(String[] args) throws Exception {
+        Sequence[] seqs;
+
         Markov m = new Markov();
-        File dataFolder = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
-        File structFile = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\imp_struct.fasta");
+
+        File dataFolderOld = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
+        File dataFolder = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset");
+        File structFile = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\imp_struct.fasta");
         int table = Hydrophobicity.KYTE_DOOLITTLE;
 
+//        seqs = DataReader.readSequences(dataFolder, structFile, table);
+////////        seqs = RandomSequenceGenerator.generate(1000);
+//        m.train(seqs);
+//        m.predict(seqs[27]);
+//        m = new Markov();
+//        seqs = RandomSequenceGenerator.generate(1000);
+//        m.train(seqs);
+//        m = new Markov();
+//        seqs = RandomSequenceGenerator.generate(1000);
+//        m.train(seqs);
 
-//        Sequence[] seqs = DataReader.readSequences(dataFolder, structFile, table);
-        Sequence[] seqs = RandomSequenceGenerator.generate(333);
-        m.train(seqs);
-        m.predict(seqs[2]);
+//        m.predict(seqs[2]);
 //        m.save(new File("markovREALDATA_10seqs.graph"));
 //        m.save(new File("markovNEWREALDATA.txt"));
-//		Sequence[] sequences = DataReader.readSequences(dataFolder, structFile, table);
-//
-//		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
-//
-//		EvaluationResult result = eval.evaluate();
-//
-//		System.out.println(result);
+		Sequence[] sequences = DataReader.readAll(dataFolder, table);
+//		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld,structFile, table);
+
+		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
+		EvaluationResult result = eval.evaluate();
+		System.out.println(result);
+
+//		m.train(sequences);
+//		m.save(new File("TEST.txt"));
+//		m = new Markov();
+//		m.load(new File("TEST.txt"));
 
 
 //        int max = 333;
