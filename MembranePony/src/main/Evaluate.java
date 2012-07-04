@@ -16,11 +16,10 @@ public class Evaluate {
 	
 	public static void main(String[] args) throws IOException {
 			
-		File dataFolder = new File("N:\\temp\\ppdata\\dataset\\impOutput");
-		File structFile = new File("N:\\temp\\ppdata\\dataset\\imp_struct.fasta");
+		File dataFolder = new File("N:\\temp\\lean-dataset\\");
 		int table = Hydrophobicity.KYTE_DOOLITTLE;
 		
-		Sequence[] sequences = DataReader.readSequences(dataFolder, structFile, table);
+		Sequence[] sequences = DataReader.readAll(dataFolder, table);
 		
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 		
