@@ -1,9 +1,9 @@
 package markov.graph;
 
 /**
- * simple class for represeting a morkov vertex specified by<br>
- * <li> aminoacid:String
- * <li> sse:String <li> hydrophobocity:Double <li> windowPos:int
+ * simple class for represeting a morkov vertex specified by<br> <li>
+ * aminoacid:String <li> sse:String <li> hydrophobocity:Double <li>
+ * windowPos:int
  *
  * @author rgreil
  */
@@ -12,51 +12,80 @@ public class Vertex {
     private String aminoacid;
     private String sse;
     private final Double hydrophobocity;
-    private final int windowPos;
+//    private final int windowPos;
     private final String id;
+//    private int realClassInside = 0;
+//    private int realClassOutside = 0;
+//    private int realClassTmh = 0;
+//    private int realClassNonTmh = 0;
 
-    private int realClassInside = 0;
-    private int realClassOutside = 0;
-    private int realClassTmh = 0;
-    private int realClassNonTmh = 0;
+//    public Vertex(Enum aminoacid, Enum sse, Double hydrophobocity, int windowPos) {
+//        //aminoAcid:Sting
+//        this.aminoacid = aminoacid.toString().intern();
+//        String tmp = this.aminoacid;
+//
+//        //secondaryStructure:String
+//        this.sse = sse.toString().intern();
+//        tmp += ":" + this.sse;
+//
+//        //hydrophobocity:Double
+//        this.hydrophobocity = hydrophobocity;
+//        tmp += ":" + this.hydrophobocity.toString().intern();
+//
+//        //windowPosition:int
+//        this.windowPos = windowPos;
+//        tmp += ":" + this.windowPos;
+//
+//        //create internal id
+//        id = tmp;
+//    }
 
-    public Vertex(String aminoacid, String sse, Double hydrophobocity, int windowPos) {
+    public Vertex(Enum aminoacid, Enum sse, Double hydrophobocity) {
         //aminoAcid:Sting
-        this.aminoacid = aminoacid.intern();
+        this.aminoacid = aminoacid.toString().intern();
         String tmp = this.aminoacid;
 
         //secondaryStructure:String
-//        if (sse == null) {
-//            this.sse = null;
-//        } else {
-            this.sse = sse.intern();
-//        }
+        this.sse = sse.toString().intern();
         tmp += ":" + this.sse;
 
         //hydrophobocity:Double
-//        if (hydrophobocity == null) {
-//            this.hydrophobocity = null;
-//
-//        } else {
-            this.hydrophobocity = hydrophobocity;
-//        }
+        this.hydrophobocity = hydrophobocity;
         tmp += ":" + this.hydrophobocity.toString().intern();
 
-        //windowPosition:int
-//        if (windowPos == -1) {
-//            this.windowPos = -1;
-//        } else {
-            this.windowPos = windowPos;
-//        }
-        tmp += ":" + windowPos;
+//        //windowPosition:int
+//        this.windowPos = -1;
+//        tmp += ":" + this.windowPos;
 
         //create internal id
         id = tmp;
     }
 
+       public Vertex(String aminoacid, String sse, Double hydrophobocity) {
+        //aminoAcid:Sting
+        this.aminoacid = aminoacid.intern();
+        String tmp = this.aminoacid;
+
+        //secondaryStructure:String
+        this.sse = sse.intern();
+        tmp += ":" + this.sse;
+
+        //hydrophobocity:Double
+        this.hydrophobocity = hydrophobocity;
+        tmp += ":" + this.hydrophobocity.toString().intern();
+
+//        //windowPosition:int
+//        this.windowPos = -1;
+//        tmp += ":" + this.windowPos;
+
+        //create internal id
+        id = tmp;
+    }
+
+
+
     @Override
     public String toString() {
-//        String result = "aa:" + getAminoacid() + "_sse:" + getSse() + "_hp:" + getHydrophobocity() + "_@:" + getWindowPos();
         return id;
     }
 
@@ -97,41 +126,39 @@ public class Vertex {
 //    public String getId() {
 //        return id;
 //    }
+//    public int getWindowPos() {
+//        return windowPos;
+//    }
 
-    public int getWindowPos() {
-        return windowPos;
-    }
-
-    public int getRealClassInside() {
-        return realClassInside;
-    }
-
-    public void setRealClassInside(int realClassInside) {
-        this.realClassInside = realClassInside;
-    }
-
-    public int getRealClassNonTmh() {
-        return realClassNonTmh;
-    }
-
-    public void setRealClassNonTmh(int realClassNonTmh) {
-        this.realClassNonTmh = realClassNonTmh;
-    }
-
-    public int getRealClassOutside() {
-        return realClassOutside;
-    }
-
-    public void setRealClassOutside(int realClassOutside) {
-        this.realClassOutside = realClassOutside;
-    }
-
-    public int getRealClassTmh() {
-        return realClassTmh;
-    }
-
-    public void setRealClassTmh(int realClassTmh) {
-        this.realClassTmh = realClassTmh;
-    }
-    
+//    public int getRealClassInside() {
+//        return realClassInside;
+//    }
+//
+//    public void setRealClassInside(int realClassInside) {
+//        this.realClassInside = realClassInside;
+//    }
+//
+//    public int getRealClassNonTmh() {
+//        return realClassNonTmh;
+//    }
+//
+//    public void setRealClassNonTmh(int realClassNonTmh) {
+//        this.realClassNonTmh = realClassNonTmh;
+//    }
+//
+//    public int getRealClassOutside() {
+//        return realClassOutside;
+//    }
+//
+//    public void setRealClassOutside(int realClassOutside) {
+//        this.realClassOutside = realClassOutside;
+//    }
+//
+//    public int getRealClassTmh() {
+//        return realClassTmh;
+//    }
+//
+//    public void setRealClassTmh(int realClassTmh) {
+//        this.realClassTmh = realClassTmh;
+//    }
 }

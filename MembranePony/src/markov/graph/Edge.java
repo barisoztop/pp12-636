@@ -9,32 +9,42 @@ import org.jgrapht.graph.DefaultWeightedEdge;
  */
 public class Edge extends DefaultWeightedEdge {
 
-    private int overInside = 0;
-    private int overOutside = 0;
+	private double weightTmh = 0d;
+	private double weightNonTmh = 0d;
 
-    @Override
-    public String toString() {
-        return "(" + getSource() + " : " + getTarget() + ")_w:" + getWeight();
-    }
+	@Override
+	public String toString() {
+		return "(" + getSource() + " : " + getTarget() + ")_w:" + getWeight() + "_tmh:" + getWeightTmh() + "_nontmh:" + getWeightNonTmh();
+	}
 
-    @Override
-    public double getWeight() {
-        return super.getWeight();
-    }
-    
-    public void setOverInside(int i) {
-        overInside = i;
-    }
+	public double getWeightTmh() {
+		return weightTmh;
+	}
 
-    public int getOverInside() {
-        return overInside;
-    }
+	public void setWeight(boolean tmh, double d) {
+		if (tmh) {
+			weightTmh = d;
+		} else {
+			weightNonTmh = d;
+		}
+	}
 
-    public void setOverOutside(int i) {
-        overOutside = i;
-    }
+	@Override
+	public double getWeight() {
+		return super.getWeight();
+	}
 
-    public int getOverOutside() {
-        return overOutside;
-    }
+	public double getWeight(boolean tmh) {
+		double result = -1d;
+		if (tmh) {
+			result = weightTmh;
+		} else {
+			result = weightNonTmh;
+		}
+		return result;
+	}
+
+	public double getWeightNonTmh() {
+		return weightNonTmh;
+	}
 }

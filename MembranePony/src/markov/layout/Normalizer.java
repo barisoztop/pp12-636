@@ -3,7 +3,7 @@ package markov.layout;
 import data.Constants;
 import java.util.ArrayList;
 import markov.graph.Edge;
-import markov.graph.Graph;
+import markov.graph.MarkovDirectedWeightedGraph;
 import markov.graph.Vertex;
 import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
@@ -15,39 +15,48 @@ import org.jgrapht.alg.DirectedNeighborIndex;
 public class Normalizer {
 
     private static final Logger logger = Logger.getLogger(Normalizer.class);
-    private final Graph<Vertex, Edge> graph;
-//    private final DirectedNeighborIndex<Vertex, Edge> neighbor;
-    private DirectedNeighborIndex<Vertex, Edge> neighbor;
+    private final MarkovDirectedWeightedGraph<Vertex, Edge> graph;
+    private final DirectedNeighborIndex<Vertex, Edge> neighbor;
     private double min = Double.POSITIVE_INFINITY;
 
-    public Normalizer(Graph graph) {
+    public Normalizer(MarkovDirectedWeightedGraph graph) {
         this.graph = graph;
         neighbor = new DirectedNeighborIndex(this.graph);
     }
 
     public void normalize() {
         long start = System.currentTimeMillis();
-        int counter = 0;
         for (Vertex source : graph.vertexSet()) {
             ArrayList<Edge> listEdge = new ArrayList<Edge>();
-            double sum = 0d;
+            double sumWeightAll = 0d;
+            double sumWeightTmh = 0d;
+            double sumWeightNonTmh = 0d;
             for (Vertex target : neighbor.successorListOf(source)) {
                 Edge e = graph.getEdge(source, target);
-                if (e.getWeight() <= 1.0) {
-                    counter++;
-                    graph.removeEdge(e);
-                }
                 listEdge.add(e);
-                sum += graph.getEdgeWeight(e);
+                sumWeightAll += graph.getEdgeWeight(e);
+                sumWeightTmh += e.getWeightTmh();
+                sumWeightNonTmh += e.getWeightNonTmh();
+
             }
             for (Edge e : listEdge) {
-                double value = graph.getEdgeWeight(e) / sum;
-                if (value < min) {
-                    min = value;
+                //calculate new weights
+                double newWeightAll = graph.getEdgeWeight(e) / sumWeightAll;
+                double newWeightTmh = e.getWeightTmh() / sumWeightTmh;
+                double newWeightNonTmh = e.getWeightNonTmh() / sumWeightNonTmh;
+
+                //set new weights
+                graph.setEdgeWeight(e, newWeightAll);
+                e.setWeight(true, newWeightTmh);
+                e.setWeight(false, newWeightNonTmh);
+
+                //backup minima
+                if (newWeightAll < min) {
+                    min = newWeightAll;
                 }
-                graph.setEdgeWeight(e, value);
             }
         }
+        logger.info("NORMALIZING ALL: weightAll && weightTmh && weightNonTmh");
         long end = System.currentTimeMillis();
         logger.info("normalized in " + (end - start) + " ms");
     }
