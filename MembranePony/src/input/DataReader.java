@@ -147,7 +147,7 @@ public class DataReader {
 	 * 
 	 * @throws IOException
 	 */
-	private static Sequence[] readTransmembranes(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
+	public static Sequence[] readTransmembranes(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
 		
 		logger.debug("readSequences dataFolder=>"+dataFolder+" structFile=>"+structFile+" hydroTab=>"+hydrophobiticyTable);
 		
