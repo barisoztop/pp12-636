@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -45,12 +46,96 @@ public class DataReader {
 	
 	
 	public static void main(String[] args) throws IOException {
-		File dataFolder = new File("N:\\temp\\ppdata\\mini-dataset\\impOutput");
-		File structFile = new File("N:\\temp\\ppdata\\mini-dataset\\imp_struct.fasta");
+		
+		String x = "MSLGRLCRLLKPALLCGALAAPGLAGTMCASRDDWRCARSMHEFSAKDIDGHMVNLDKYRGFVCIVTNVASQXGKTEVNYTQLVDLHARYAECGLRILAFPCNQFGKQEPGSNEEIKEFAAGYNVKFDMFSKICVNGDDAHPLWKWMKIQPKGKGILGNAIKWNFTKFLIDKNGCVVKRYGPMEEPLVIEKDLPHYF";
+
+		String y = "MSLGRLCRLLKPALLCGALAAPGLAGTMCASRDDWRCARSMHEFSAKDIDGHMVNLDKYRGFVCIVTNVASQUGKTEVNYTQLVDLHARYAECGLRILAFPCNQFGKQEPGSNEEIKEFAAGYNVKFDMFSKICVNGDDAHPLWKWMKIQPKGKGILGNAIKWNFTKFLIDKNGCVVKRYGPMEEPLVIEKDLPHYF";
+		
+		for(int i=0; i<x.length(); i++)
+			if(x.charAt(i)!=y.charAt(i)) System.out.println(x.charAt(i)+"<->"+y.charAt(i)+", "+i);
+		
+		
+//		File dataFolder = new File("N:\\temp\\ppdata\\mini-dataset\\impOutput");
+//		File structFile = new File("N:\\temp\\ppdata\\lean-dataset\\imp_struct.fasta");
 		int table = Hydrophobicity.KYTE_DOOLITTLE;
 		
-		readSequences(dataFolder, structFile, table);
+//		readSequences(dataFolder, structFile, table);
+		
+		readAll(new File("N:\\temp\\lean-dataset\\"), table);
 	}
+	
+	
+	
+	/**
+	 * solubles and transmembranes 
+	 * 
+	 * @param dataset
+	 * @param hydrophobicityTable
+	 * @return
+	 * @throws IOException
+	 */
+	public static Sequence[] readAll(File dataset, int hydrophobicityTable) throws IOException {
+		File dataFolder = new File(dataset.getAbsolutePath()+File.separator+"impOutput");
+		File structFile = new File(dataset.getAbsolutePath()+File.separator+"imp_struct.fasta");
+		
+		LinkedList<Sequence> result = new LinkedList<Sequence>();
+		
+		Sequence[] structseqs = readTransmembranes(dataFolder, structFile, hydrophobicityTable);
+		for(Sequence s : structseqs) result.add(s);
+		
+		File solublesFolder = new File(dataset.getAbsolutePath()+File.separator+"solOutput");
+		
+		Sequence[] solseqs = readSolubles(solublesFolder, hydrophobicityTable);
+		for(Sequence s : solseqs) result.add(s);
+		
+		logger.info("TOTAL: Read "+structseqs.length+" transmembranes and "+solseqs.length+" solubles.");
+		
+		return result.toArray(new Sequence[] {});
+	}
+	
+	
+	
+	public static Sequence[] readSolubles(File solublesFolder, int hydrophobicityTable) throws IOException {
+		LinkedList<Sequence> result = new LinkedList<Sequence>();
+		
+		for(File f : solublesFolder.listFiles()) {
+			if(f.isDirectory()) {
+				String id = f.getName();
+				
+				logger.info("Reading SOLUBLE sequence "+id+"...");
+				
+				String sequence = readFasta(f.getAbsolutePath()+File.separator+"query.fasta");
+				String sse = readProfRdb(f.getAbsolutePath()+File.separator+"query.profRdb", sequence);
+				
+				LinkedList<SequencePosition> seqPos = new LinkedList<SequencePosition>();
+				for(int i=0; i<sequence.length(); i++) {
+					AminoAcid aa;
+					try {
+					aa = AminoAcid.valueOf(sequence.charAt(i)+"");
+					} catch(Exception e) {continue;}
+					SSE secstr = SSE.forProfRdb(sse.charAt(i));
+					double hydrophobicity = Hydrophobicity.get(aa, hydrophobicityTable);
+					Result realClass = Result.NON_TMH;
+					
+					seqPos.add(new SequencePositionImpl(aa, hydrophobicity, secstr, hydrophobicityTable, realClass));
+					
+					
+				}
+				
+				logger.trace("|- whole seq        "+sequence);
+				logger.trace("|- whole sse        "+sse);
+				logger.trace("|- whole seq.len    "+sequence.length());
+				logger.trace("|- whole sse.len    "+sse.length());
+				
+				Sequence s = new SequenceImpl(id, seqPos.toArray(new SequencePosition[] {}));
+				result.add(s);
+			}
+		}
+		
+		return result.toArray(new Sequence[]{});
+	}
+	
+	
 	
 	
 	/**
@@ -62,7 +147,7 @@ public class DataReader {
 	 * 
 	 * @throws IOException
 	 */
-	public static Sequence[] readSequences(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
+	private static Sequence[] readTransmembranes(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
 		
 		logger.debug("readSequences dataFolder=>"+dataFolder+" structFile=>"+structFile+" hydroTab=>"+hydrophobiticyTable);
 		
@@ -97,10 +182,10 @@ public class DataReader {
 					logger.warn("NO STRUCT FOR ID="+id);
 				
 				String wholeseq = struct.wholeSequence;
-				logger.debug("|- whole seq        "+wholeseq);
+				logger.trace("|- whole seq        "+wholeseq);
 				
 				String wholesse = readProfRdb(f.getAbsolutePath()+File.separator+"query.profRdb", wholeseq);
-				logger.debug("|- whole sse        "+wholesse);
+				logger.trace("|- whole sse        "+wholesse);
 				
 				if(wholeseq.length()!=wholesse.length())
 					throw(new IllegalStateException("Whole sequence length differs from whole sse length ("+
@@ -113,7 +198,7 @@ public class DataReader {
 				for(int i=0; i<struct.startOffset; i++) temp += ".";
 				temp += seq;
 				for(int i=1; i<wholeseq.length()-struct.endOffset; i++) temp += ".";
-				logger.debug(temp);
+				logger.trace(temp);
 				
 				temp = "";
 				
@@ -123,14 +208,14 @@ public class DataReader {
 				for(int i=0; i<struct.startOffset; i++) temp += ".";
 				temp += sse;
 				for(int i=1; i<wholeseq.length()-struct.endOffset; i++) temp += ".";
-				logger.debug(temp);
+				logger.trace(temp);
 				
 				
 				
-				logger.debug("|- whole seq.len    "+wholeseq.length());
-				logger.debug("|- whole sse.len    "+wholesse.length());
-				logger.debug("|- seq.len          "+seq.length());
-				logger.debug("|- sse.len          "+sse.length());
+				logger.trace("|- whole seq.len    "+wholeseq.length());
+				logger.trace("|- whole sse.len    "+wholesse.length());
+				logger.trace("|- seq.len          "+seq.length());
+				logger.trace("|- sse.len          "+sse.length());
 				
 				
 				if(seq.length()!=sse.length())
@@ -167,14 +252,11 @@ public class DataReader {
 				Sequence s = new SequenceImpl(id, seqPos.toArray(new SequencePosition[] {}));
 				sequences.add(s);
 				
-				logger.info("Sequence object for "+id+" built successfully.");
-				
-				
 				
 			}catch(Exception e) {e.printStackTrace();}
 		}
 		
-		logger.info("Processed directories: "+processed);
+		logger.info("Processed membrane protein directories: "+processed);
 		
 		return sequences.toArray(new Sequence[]{});
 		
@@ -205,7 +287,7 @@ public class DataReader {
 			
 		}
 		
-		if(!seq.equals(sequence)) {
+		if(!seq.replaceAll("[UX]","").equals(sequence.replaceAll("[UX]",""))) {
 			System.err.println("WARNING: SEQUENCE FROM SSE PROFRDB FILE DOES NOT MATCH FASTA SEQ");
 			System.err.println("ProfRdb sequence:");
 			System.err.println(seq);
@@ -223,17 +305,18 @@ public class DataReader {
 	
 	
 	
-//	private static String readFasta(String path) throws IOException {
-//	String fasta = Helpers.readFile(path);
-//	
-//	String[] lines = fasta.split("\n");
-//	StringBuilder sb = new StringBuilder();
-//	for(String line : lines)
-//		if(!line.startsWith(">"))
-//			sb.append(line.trim());
-//	
-//	return sb.toString();
-//}
+	private static String readFasta(String path) throws IOException {
+	String fasta = Helpers.readFile(path);
+	
+	String[] lines = fasta.split("\n");
+	StringBuilder sb = new StringBuilder();
+	for(String line : lines)
+		if(!line.startsWith(">")) {
+			sb.append(line.replaceAll("\\s+", ""));
+		}
+	
+	return sb.toString();
+}
 	
 	
 //	private static String fetchUniprotClassification(String id, String sequence) throws IOException {

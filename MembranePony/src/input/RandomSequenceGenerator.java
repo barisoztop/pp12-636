@@ -13,6 +13,8 @@ import data.SSE;
 
 public class RandomSequenceGenerator {
 
+	public static long seed = 123128095;
+	
     public static void main(String[] args) {
         Sequence[] seqs = generate(50);
 
@@ -34,7 +36,7 @@ public class RandomSequenceGenerator {
 
         Result[] classes = Result.values();
 
-        Random ralf = new Random();
+        Random ralf = new Random(seed);
 
         int scale = ralf.nextInt(6);
 
