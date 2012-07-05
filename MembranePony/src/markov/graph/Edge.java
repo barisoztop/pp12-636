@@ -11,10 +11,11 @@ public class Edge extends DefaultWeightedEdge {
 
 	private double weightTmh = 0d;
 	private double weightNonTmh = 0d;
+	private double weightComplete = 0d;
 
 	@Override
 	public String toString() {
-		return "(" + getSource() + " : " + getTarget() + ")_w:" + getWeight() + "_tmh:" + getWeightTmh() + "_nontmh:" + getWeightNonTmh();
+		return "(" + getSource() + " : " + getTarget() + ")_w:" + getWeightComplete() + "_tmh:" + getWeightTmh() + "_nontmh:" + getWeightNonTmh();
 	}
 
 	public double getWeightTmh() {
@@ -29,9 +30,12 @@ public class Edge extends DefaultWeightedEdge {
 		}
 	}
 
-	@Override
-	public double getWeight() {
-		return super.getWeight();
+	public double getWeightComplete() {
+		return weightComplete;
+	}
+
+	public void setWeightComplete(double d) {
+		weightComplete = d;
 	}
 
 	public double getWeight(boolean tmh) {
