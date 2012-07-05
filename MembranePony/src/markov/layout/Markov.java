@@ -258,9 +258,21 @@ public final class Markov implements Predictor {
 //					System.out.println("\t---> REAL: " + spMiddle.getRealClass());
 //					System.out.println("\t---> PRED: " + predicted);
 				}
+				//TODO: hier noch iwie die wkeit für TMH / NON_TMH in nem array mitspeichern
 				pred.add(predicted);
 			}
 		}
+
+		//TODO: hier nochmal son extra check reinzwiefeln, kA ob das was bringt
+		//postprocessing?
+		//tmh ist ja mindestens so 16-20 stellen lang, daher die ergebnisse angucken
+		//n=nontmh | t=tmh
+		//nnnnnnnnnnnnntnnttttttttntttttttttnnnnnnnnnntnnntntntnnnnnnntnnnnnnnnntttttttnttttttnntnttttttnn
+		//alle ns rauswerfen die so zwischen ts sind, alle ts raushauen, wenn ihre position totaler müll ist
+		//evtl die normale sequenz mit mss nochmal überarbeiten udn anhand davon die stellen gucken wo was sein sollte, bzw.
+		//inwieweit das übereinander passt
+
+
 		predictions = pred.toArray(predictions);
 		if (counterFalsePredicted != 0) {
 			logger.debug("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
