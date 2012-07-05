@@ -18,7 +18,7 @@ public class MarkovEdgeNameProvider implements EdgeNameProvider<Edge>{
 
     @Override
     public String getEdgeName(Edge edge) {
-        return nf.format(edge.getWeight())+":"+nf.format(edge.getWeightTmh())+":"+nf.format(edge.getWeightNonTmh());
+        return nf.format(edge.getWeightComplete())+":"+nf.format(edge.getWeightTmh())+":"+nf.format(edge.getWeightNonTmh());
     }
 
 }

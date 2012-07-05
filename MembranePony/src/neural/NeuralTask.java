@@ -8,6 +8,7 @@ package neural;
  *
  * @author tobias
  */
+@Deprecated
 public enum NeuralTask {
     TRAINING, PREDICTION
 }

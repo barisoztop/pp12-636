@@ -19,6 +19,7 @@ import org.neuroph.nnet.Perceptron;
  *
  * @author tobias
  */
+@Deprecated
 public class NeuralPredictor implements Predictor{
 
     private NeuralNetwork neuralNetwork;
@@ -44,8 +45,8 @@ public class NeuralPredictor implements Predictor{
         //here all input data n should be mapped onto a single perceptron
         //returning 1 for TMH and 0 for non TMH
         this.neuralNetwork = new Perceptron(inputNeurons, outputNeurons);
-    }   
-     
+    }
+
      /**
       * Use this constructor to load a saved neural network and for prediction
       */
@@ -53,11 +54,11 @@ public class NeuralPredictor implements Predictor{
          this.networkLoaded = true;
          this.task = NeuralTask.PREDICTION;
      }
-    
+
     /**
-      * Predicts a 
+      * Predicts a
       * @param sequence
-      * @return 
+      * @return
       */
     @Override
     public Prediction predict(Sequence sequence) {
@@ -66,45 +67,45 @@ public class NeuralPredictor implements Predictor{
             throw new IllegalStateException("Instance was created for Training."
                     + "Prediction is not possible at the moment.");
         }
-        
+
         if(!this.networkLoaded){
             throw new IllegalStateException("Neural Network was not loaded"
                     + "from harddisk. Please use load method to load it.");
         }
-        
+
         LinkedList<Double> inputVector = new LinkedList<Double>();
         LinkedList<Result[]> output = new LinkedList<Result[]>();
-        
+
         for(SlidingWindow window : sequence.getWindows()){
-            
+
             inputVector.clear();
-            
+
             for(int i=0; i<window.getSequence().length; i++){
-               
+
                 SequencePosition pos = window.getSequence()[i];
-                
+
                 inputVector.add(mapAAsOntoDoubleValues(pos.getAminoAcid()));
                 inputVector.add(pos.getHydrophobicity());
                 inputVector.add(mapSSEontoDoubleValues(pos.getSecondaryStructure()));
             }
-            
+
             //predict
             this.neuralNetwork.setInput(doubleLinkedListToDoubleArray(inputVector));
             this.neuralNetwork.calculate();
-            
+
             //get output
             output.add(mapDoubleValuesOntoResult(this.neuralNetwork.getOutput()));
         }
-        
-        //Why do we give back just one result array for the whole sequence? 
-        //Should'nt we give back an array of result arrays according to each window which 
+
+        //Why do we give back just one result array for the whole sequence?
+        //Should'nt we give back an array of result arrays according to each window which
         //has been preidicted? Maybe we have to adapt the interfaces...
         return new NeuralPrediction(sequence, output.get(0)); //???????????????????
     }
-    
+
     /**
-     * 
-     * @param trainingCases 
+     *
+     * @param trainingCases
      */
     @Override
     public void train(Sequence[] trainingCases) {
@@ -155,42 +156,42 @@ public class NeuralPredictor implements Predictor{
      * @param trainingSet
      */
     private void generateTrainingSet(Sequence[] trainingCases, TrainingSet<SupervisedTrainingElement> trainingSet){
-        
+
         LinkedList<Double> trainingInputVector = new LinkedList<Double>();
         LinkedList<Double> trainingOutputVector = new LinkedList<Double>();
-        
+
         for(Sequence s : trainingCases){
-          
+
             SlidingWindow[] seqWindows = s.getWindows();
-            
+
             for(SlidingWindow window : seqWindows){
-                
+
                 trainingInputVector.clear();
                 trainingOutputVector.clear();
-                
+
                 for(int i=0; i<window.getSequence().length; i++){
-                    
+
                     SequencePosition position = window.getSequence()[i];
-                    
+
                     //fill input vector
                     trainingInputVector.add(mapAAsOntoDoubleValues(position.getAminoAcid()));
                     trainingInputVector.add(position.getHydrophobicity());
                     trainingInputVector.add(mapSSEontoDoubleValues(position.getSecondaryStructure()));
-                    
+
                     //fill output vector
                     trainingOutputVector.add(mapResultOntoDoubleValues(position.getRealClass()));
                 }
-                
+
                 //add a training element to the training set
                 trainingSet.addElement(new SupervisedTrainingElement(doubleLinkedListToDoubleArray(trainingInputVector),doubleLinkedListToDoubleArray(trainingOutputVector)));
-            }          
+            }
         }
     }
 
     /**
      * Saves trained model to hard disk
      * @param model
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public void save(File model) throws Exception {
@@ -200,11 +201,11 @@ public class NeuralPredictor implements Predictor{
             System.out.println("Model could not saved to path "+model.toString());
         }
     }
-    
+
     /**
      * Loads model from harddisk
      * @param model
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public void load(File model) throws Exception {
@@ -215,98 +216,98 @@ public class NeuralPredictor implements Predictor{
             System.out.println("Model could be load from path "+model.toString());
         }
     }
-    
+
     /**
      * Returns the number of input neurons used in this neural network
-     * @return 
+     * @return
      */
     public int getNumberOfInputNeurons(){
         return this.inputN;
     }
-    
+
     /**
      * Returns the number of output neurons used in this neural network
-     * @return 
+     * @return
      */
     public int getNumberOfOutputNeurons(){
         return this.outputN;
     }
-    
+
     /**
-     * 
+     *
      * @param list
-     * @return 
+     * @return
      */
     private double[] doubleLinkedListToDoubleArray(LinkedList<Double> list){
-        
+
         double[] output = new double[list.size()];
-        
+
         for(int i=0; i<list.size(); i++){
             output[i] = list.get(i);
         }
-        
+
         return output;
     }
-    
+
     /**
-     * 
+     *
      * @param res
-     * @return 
+     * @return
      */
     private double mapResultOntoDoubleValues(Result res){
-        
+
         switch(res){
             case INSIDE     : return 1.0;
             case OUTSIDE    : return 2.0;
             case TMH        : return 3.0;
-            case NON_TMH    : return 4.0;    
-                
-            default         : return 0.0;    
+            case NON_TMH    : return 4.0;
+
+            default         : return 0.0;
         }
     }
-    
+
     /**
-     * 
+     *
      * @param d
-     * @return 
+     * @return
      */
     private Result[] mapDoubleValuesOntoResult(double[] d){
-        
+
         Result[] results = new Result[d.length];
-        
+
         for(int i=0; i<d.length; i++){
-            
+
             switch((int) d[i]){
-                
-                case 1  : results[i]=Result.INSIDE; 
+
+                case 1  : results[i]=Result.INSIDE;
                             break;
-                case 2  : results[i]=Result.OUTSIDE; 
+                case 2  : results[i]=Result.OUTSIDE;
                             break;
-                case 3  : results[i]=Result.TMH; 
+                case 3  : results[i]=Result.TMH;
                             break;
-                case 4  : results[i]=Result.NON_TMH; 
+                case 4  : results[i]=Result.NON_TMH;
                             break;
-                
-                default : results[i]=null; 
-                            break;    
-             }   
+
+                default : results[i]=null;
+                            break;
+             }
         }
-        
+
         return results;
     }
-    
+
     /**
-     * 
+     *
      * @param aa
-     * @return 
+     * @return
      */
     private double mapAAsOntoDoubleValues(AminoAcid aa){
-        
+
         //maybe here it is neccessary to play with the mapped values, eg
         //-10 to 10 etc..., depends how the neural network will work
-        
+
         switch(aa){
-            
+
             case A  : return 1.0;
             case C  : return 2.0;
             case D  : return 3.0;
@@ -323,36 +324,36 @@ public class NeuralPredictor implements Predictor{
             case Q  : return 14.0;
             case R  : return 15.0;
             case S  : return 16.0;
-            case T  : return 17.0;    
+            case T  : return 17.0;
             case V  : return 18.0;
             case W  : return 19.0;
-            case Y  : return 20.0;    
-                
+            case Y  : return 20.0;
+
             default : return 0.0;
         }
     }
-    
+
     /**
-     * 
+     *
      * @param sse
-     * @return 
+     * @return
      */
     private double mapSSEontoDoubleValues(SSE sse){
-        
+
         switch(sse){
             case Helix  : return 1.0;
             case Coil   : return 2.0;
             case Sheet  : return 3.0;
-                
-            default     : return 0.0;    
+
+            default     : return 0.0;
         }
     }
-    
+
     /**
      * For testing purpose only
-     * @param args 
+     * @param args
      */
     public static void main(String[] args){
-        
+
     }
 }

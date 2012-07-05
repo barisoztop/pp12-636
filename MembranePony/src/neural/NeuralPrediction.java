@@ -14,29 +14,30 @@ import java.util.LinkedList;
  *
  * @author tobiassander
  */
+@Deprecated
 public class NeuralPrediction implements Prediction{
-    
+
     private Sequence sequence;
     private Result[] results;
-            
+
     public NeuralPrediction(Sequence seq, Result[] results){
         this.sequence = seq;
         this.results = results;
     }
-    
+
     /**
      * Returns the actual sequence contained by this object
-     * @return 
+     * @return
      */
     @Override
     public Sequence getInputSequence() {
         return this.sequence;
     }
-    
+
     /**
      * Returns the prediction result of a given residue
      * @param residueNr
-     * @return 
+     * @return
      */
     @Override
     public Result getPredictionForResidue(int residueNr) {
@@ -47,61 +48,61 @@ public class NeuralPrediction implements Prediction{
                     + "available. Please run prediction first.");
         }
     }
-    
+
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     @Override
     public Region[] getPredictedRegions() {
-        
+
         if(results==null){
             throw new UnsupportedOperationException("No results available.");
         }
-        
+
         LinkedList<Region> regions = new LinkedList<Region>();
         Result tempResult=null;
         int start=0;
-               
+
         for(int i=0; i<results.length; i++){
-            
+
             if(tempResult==null){
                 start = i;
                 tempResult = results[i];
                 continue;
             }
-            
+
             if(i==results.length-1 && tempResult!=results[i]){
                 regions.add(new Region(i, i, results[i]));
             }
-            
+
             if(i==results.length-1 && tempResult==results[i]){
                 regions.add(new Region(start, i, tempResult));
             }
-            
-            if(tempResult!=results[i]){     
+
+            if(tempResult!=results[i]){
                 regions.add(new Region(start, i-1, tempResult));
                 tempResult = results[i];
                 start = i;
-            }         
+            }
         }
-        
-        return regionListToArray(regions);    
+
+        return regionListToArray(regions);
     }
-    
+
     /**
-     * 
+     *
      * @param regions
-     * @return 
+     * @return
      */
     private Region[] regionListToArray(LinkedList<Region> regions){
-        
+
         Region[] regs = new Region[regions.size()];
-        
+
         for(int i=0; i<regions.size(); i++){
             regs[i] = regions.get(i);
         }
-        
+
         return regs;
     }
 }
