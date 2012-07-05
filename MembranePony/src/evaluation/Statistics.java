@@ -49,6 +49,8 @@ public class Statistics {
 				+ " precision=" + d(getPrecision())
 				+ " specificity=" + d(getSpecificity())
 				+ " f-measure=" + d(getFMeasure())
+				+ " accuracy=" + d(getAccuracy())
+				+ " error_rate=" + d(getErrorRate())
 				+ " ]";
 	}
 
@@ -57,6 +59,18 @@ public class Statistics {
 	}
 
 	//the actual statistics
+	
+	public double getAccuracy() {
+		return (double) ( truePositives + trueNegatives ) / 
+				(double) ( truePositives + falsePositives + trueNegatives + falseNegatives ); 
+	}
+	
+	
+	public double getErrorRate() {
+		return 1-getAccuracy();
+	}
+	
+	
 	/**
 	 * true positive rate; fraction of all elements that should have been
 	 * classified positive and actually were.<p> true positives / (true
