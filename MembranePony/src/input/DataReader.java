@@ -46,22 +46,16 @@ public class DataReader {
 	
 	
 	public static void main(String[] args) throws IOException {
-		
-		String x = "MSLGRLCRLLKPALLCGALAAPGLAGTMCASRDDWRCARSMHEFSAKDIDGHMVNLDKYRGFVCIVTNVASQXGKTEVNYTQLVDLHARYAECGLRILAFPCNQFGKQEPGSNEEIKEFAAGYNVKFDMFSKICVNGDDAHPLWKWMKIQPKGKGILGNAIKWNFTKFLIDKNGCVVKRYGPMEEPLVIEKDLPHYF";
-
-		String y = "MSLGRLCRLLKPALLCGALAAPGLAGTMCASRDDWRCARSMHEFSAKDIDGHMVNLDKYRGFVCIVTNVASQUGKTEVNYTQLVDLHARYAECGLRILAFPCNQFGKQEPGSNEEIKEFAAGYNVKFDMFSKICVNGDDAHPLWKWMKIQPKGKGILGNAIKWNFTKFLIDKNGCVVKRYGPMEEPLVIEKDLPHYF";
-		
-		for(int i=0; i<x.length(); i++)
-			if(x.charAt(i)!=y.charAt(i)) System.out.println(x.charAt(i)+"<->"+y.charAt(i)+", "+i);
-		
-		
+				
 //		File dataFolder = new File("N:\\temp\\ppdata\\mini-dataset\\impOutput");
 //		File structFile = new File("N:\\temp\\ppdata\\lean-dataset\\imp_struct.fasta");
 		int table = Hydrophobicity.KYTE_DOOLITTLE;
 		
 //		readSequences(dataFolder, structFile, table);
 		
-		readAll(new File("N:\\temp\\lean-dataset\\"), table);
+//		readAll(new File("N:\\temp\\lean-dataset\\"), table, true);
+		readAll(new File("/Users/felixsappelt/temp/lean-dataset"), table, true);
+		
 	}
 	
 	
@@ -74,28 +68,34 @@ public class DataReader {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Sequence[] readAll(File dataset, int hydrophobicityTable) throws IOException {
+	public static Sequence[] readAll(File dataset, int hydrophobicityTable, boolean hydroWindow) throws IOException {
 		File dataFolder = new File(dataset.getAbsolutePath()+File.separator+"impOutput");
 		File structFile = new File(dataset.getAbsolutePath()+File.separator+"imp_struct.fasta");
 		
 		LinkedList<Sequence> result = new LinkedList<Sequence>();
 		
-		Sequence[] structseqs = readTransmembranes(dataFolder, structFile, hydrophobicityTable);
+		Sequence[] structseqs = readTransmembranes(dataFolder, structFile, hydrophobicityTable, hydroWindow);
 		for(Sequence s : structseqs) result.add(s);
 		
 		File solublesFolder = new File(dataset.getAbsolutePath()+File.separator+"solOutput");
 		
-		Sequence[] solseqs = readSolubles(solublesFolder, hydrophobicityTable);
+		Sequence[] solseqs = readSolubles(solublesFolder, hydrophobicityTable, hydroWindow);
 		for(Sequence s : solseqs) result.add(s);
 		
 		logger.info("TOTAL: Read "+structseqs.length+" transmembranes and "+solseqs.length+" solubles.");
 		
-		return result.toArray(new Sequence[] {});
+		Sequence[] sequences = result.toArray(new Sequence[] {});
+		
+		//done in the other two methods already
+//		if(hydroWindow)
+//			hydrophobicityWindowCalculation(sequences);
+		
+		return sequences;
 	}
 	
 	
 	
-	public static Sequence[] readSolubles(File solublesFolder, int hydrophobicityTable) throws IOException {
+	public static Sequence[] readSolubles(File solublesFolder, int hydrophobicityTable, boolean hydroWindow) throws IOException {
 		LinkedList<Sequence> result = new LinkedList<Sequence>();
 		
 		for(File f : solublesFolder.listFiles()) {
@@ -132,7 +132,12 @@ public class DataReader {
 			}
 		}
 		
-		return result.toArray(new Sequence[]{});
+		Sequence[] sequences = result.toArray(new Sequence[] {});
+		
+		if(hydroWindow)
+			hydrophobicityWindowCalculation(sequences);
+		
+		return sequences;
 	}
 	
 	
@@ -147,7 +152,7 @@ public class DataReader {
 	 * 
 	 * @throws IOException
 	 */
-	public static Sequence[] readTransmembranes(File dataFolder, File structFile, int hydrophobiticyTable) throws IOException {
+	public static Sequence[] readTransmembranes(File dataFolder, File structFile, int hydrophobiticyTable, boolean hydroWindow) throws IOException {
 		
 		logger.debug("readSequences dataFolder=>"+dataFolder+" structFile=>"+structFile+" hydroTab=>"+hydrophobiticyTable);
 		
@@ -258,11 +263,60 @@ public class DataReader {
 		
 		logger.info("Processed membrane protein directories: "+processed);
 		
-		return sequences.toArray(new Sequence[]{});
+		Sequence[] sequencesArr = sequences.toArray(new Sequence[] {});
 		
+		if(hydroWindow)
+			hydrophobicityWindowCalculation(sequencesArr);
+		
+		return sequencesArr;
 	}
 	
 		
+	
+	private static void hydrophobicityWindowCalculation(Sequence[] sequences) {
+		logger.info("Performing hydrophobicity window calculation on "+sequences.length+" sequences.");
+		
+		for(SequencePosition p : sequences[0].getSequence()) 
+			System.out.print(Math.round(p.getHydrophobicity()*1000)/1000d+"\t");
+		
+		System.out.println();
+		
+		
+		
+		for(Sequence s : sequences) {
+			double[] hydrophobicity = new double[s.length()];
+//			for(int i=0; i<s.length(); i++) 
+//				hydrophobicity[i] = s.getSequence()[i].getHydrophobicity();
+//			System.out.println();
+			
+			for(int i=0; i<s.length(); i++) {
+				SequencePositionImpl pos = (SequencePositionImpl) s.getSequence()[i];
+				
+				int divisor = 1;
+				double hydrophobicitySum = hydrophobicity[i];
+				
+				if(i>0) {
+					hydrophobicitySum += hydrophobicity[i-1];
+					divisor++;
+				}
+				
+				if(i<s.length()-1) {
+					hydrophobicitySum += hydrophobicity[i+1];
+					divisor++;
+				}
+				
+				double hydroNew = hydrophobicitySum/(double)divisor;
+				
+				pos.setHydrophobicity(hydrophobicitySum/(double)divisor);
+			}
+		}
+		
+		
+//		for(SequencePosition p : sequences[0].getSequence())
+//			System.out.print(Math.round(p.getHydrophobicity()*1000)/1000d+"\t");
+//		System.out.println();
+	}
+	
 	
 
 	

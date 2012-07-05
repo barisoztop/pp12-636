@@ -54,4 +54,8 @@ public class SequencePositionImpl implements SequencePosition {
     public Result getRealClass() {
         return realClass;
     }
+
+	public void setHydrophobicity(double d) {
+		hydrophobicity = d;
+	}
 }
