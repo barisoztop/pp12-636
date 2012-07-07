@@ -45,7 +45,7 @@ public class Test {
 //        m.predict(seqs[2]);
 //        m.save(new File("markovREALDATA_10seqs.graph"));
 //        m.save(new File("markovNEWREALDATA.txt"));
-		Sequence[] sequences = DataReader.readAll(dataFolder, table, true);
+		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld,structFile, table, false);
 
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
