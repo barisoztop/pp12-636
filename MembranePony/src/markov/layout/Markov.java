@@ -43,27 +43,28 @@ public final class Markov implements Predictor {
 	private final int middle = (Constants.WINDOW_LENGTH / 2);
 	private boolean windowNew = false;
 	private double normalizedMin = 0.000001d;
-	private double[] windowVertexWeight = new double[]{
-		10,
-		9,
-		8,
-		7,
-		6,
-		5,
-		4,
-		3,
-		2,
-		1,
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7,
-		8,
-		9,
-		10,};
+//	private double[] windowVertexWeight = new double[]{
+//				1,
+//		2,
+//		3,
+//		4,
+//		5,
+//		6,
+//		7,
+//		8,
+//		9,
+//		10,
+//		10,
+//		9,
+//		8,
+//		7,
+//		6,
+//		5,
+//		4,
+//		3,
+//		2,
+//		1,
+//	};
 
 	private enum SpecialVertex {
 
@@ -169,14 +170,17 @@ public final class Markov implements Predictor {
 			}
 
 			{
-//				// weight edges -> auslagern in weighting classes
+////				 weight edges -> auslagern in weighting classes
 //				for (int i = 0; i < listWindowClonedEdges.size(); i++) {
 //					Edge e = listWindowClonedEdges.get(i);
 //					if (e == null) {
 //						continue;
 //					}
-//					e.setWeight(true, e.getWeight(true) * windowVertexWeight[i]);
-//					e.setWeight(false, e.getWeight(false) * windowVertexWeight[i]);
+//					//majority vote
+//					double weight = 1d/(windowVertexWeight[i]*windowVertexWeight[i]);
+//
+//					e.setWeight(true, e.getWeight(true) * weight);
+//					e.setWeight(false, e.getWeight(false) * weight);
 //					e.setWeightComplete(e.getWeightTmh() + e.getWeightNonTmh());
 //				}
 
