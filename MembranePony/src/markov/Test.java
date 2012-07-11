@@ -10,7 +10,10 @@ import evaluation.EvaluationResult;
 import input.DataReader;
 import interfaces.Sequence;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import markov.layout.Markov;
+import markov.layout.TripleNet;
 import org.apache.log4j.Logger;
 
 /**
@@ -24,7 +27,8 @@ public class Test {
     public static void main(String[] args) throws Exception {
         Sequence[] seqs;
 
-        Markov m = new Markov();
+//        Markov m = new MarkovOneNet();
+        Markov m = new TripleNet();
 
         File dataFolderOld = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
         File dataFolder = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset");
@@ -48,12 +52,15 @@ public class Test {
 		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld,structFile, table, false);
 
+		Collections.shuffle(Arrays.asList(sequences));
+
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 		EvaluationResult result = eval.evaluate();
 		System.out.println(result);
 
 //		m.train(sequences);
-//		m.save(new File("TEST.txt"));
+//		m.predict(sequences[23]);
+//		m.save(new File("TripleNet.txt"));
 //		m = new Markov();
 //		m.load(new File("TEST.txt"));
 

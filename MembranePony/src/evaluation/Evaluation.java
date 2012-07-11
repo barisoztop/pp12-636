@@ -5,9 +5,11 @@ import interfaces.Predictor;
 import interfaces.PredictorFactory;
 import interfaces.Result;
 import interfaces.Sequence;
+import java.util.ArrayList;
 
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * tenfold crossvalidation
@@ -19,6 +21,7 @@ public class Evaluation {
 
 	private Sequence[] sequences;
 	private PredictorFactory factory;
+	private int countRuns = 10;
 
 	public Evaluation(Sequence[] sequences, PredictorFactory factory) {
 		this.sequences = sequences;
@@ -31,16 +34,17 @@ public class Evaluation {
 	 * @return the result of the evaluation
 	 */
 	public EvaluationResult evaluate() {
+		EvaluationRun[] runs = new EvaluationRun[countRuns];
 
-		EvaluationRun[] runs = new EvaluationRun[10];
+		stratifySequences();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < countRuns; i++) {
 			Predictor priscilla = factory.getInstance();
 
 			//combine the 9 training sets into one big set
 			LinkedList<Sequence> trainSet = new LinkedList<Sequence>();
 
-			for (int j = 0; j < 10; j++) {
+			for (int j = 0; j < countRuns; j++) {
 				if (i == j) {
 					continue;
 				}
@@ -198,7 +202,7 @@ public class Evaluation {
 				//log the result for this sequence with the EvaluationRun object
 				run.logSequence(test, tmh, nontmh, inside, outside);
 //				System.out.println(run);
-				
+
 			}
 
 			//add the current run to the appropriate position in the runs array
@@ -209,11 +213,30 @@ public class Evaluation {
 		return new EvaluationResult(runs);
 	}
 
+	private void stratifySequences() {
+		List<Sequence> transmembrane = new LinkedList<Sequence>();
+		List<Sequence> solubles = new LinkedList<Sequence>();
+
+		for (Sequence input : sequences) {
+			if (input.containsTransmembrane()) {
+				transmembrane.add(input);
+			} else {
+				solubles.add(input);
+			}
+		}
+
+		List<Sequence> all = new ArrayList<Sequence>();
+		all.addAll(transmembrane);
+		all.addAll(solubles);
+
+		sequences = all.toArray(sequences);
+	}
+
 	/**
 	 * tenfold crossvalidation necessitates that the set of test/training cases
 	 * be divided into ten subsets. this gets you the ith subset.
 	 *
-	 * @param iteration 0-9
+	 * @param iteration 0-(@countRuns-1)
 	 * @return the corresponding set. if you have, say, 99 sequences in total,
 	 * the last set will contain only 9, the others 10 sequences, so watch out.
 	 */
@@ -221,7 +244,7 @@ public class Evaluation {
 		LinkedList<Sequence> set = new LinkedList<Sequence>();
 
 		for (int j = 0; j < sequences.length; j++) {
-			if (j % 10 == iteration) {
+			if (j % countRuns == iteration) {
 				set.add(sequences[j]);
 			}
 		}
