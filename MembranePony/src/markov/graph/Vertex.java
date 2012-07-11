@@ -41,7 +41,7 @@ public class Vertex {
 //    }
 
     public Vertex(Enum aminoacid, Enum sse, Double hydrophobocity) {
-        //aminoAcid:Sting
+        //aminoAcid:String
         this.aminoacid = aminoacid.toString().intern();
         String tmp = this.aminoacid;
 
@@ -53,16 +53,12 @@ public class Vertex {
         this.hydrophobocity = hydrophobocity;
         tmp += ":" + this.hydrophobocity.toString().intern();
 
-//        //windowPosition:int
-//        this.windowPos = -1;
-//        tmp += ":" + this.windowPos;
-
         //create internal id
         id = tmp;
     }
 
        public Vertex(String aminoacid, String sse, Double hydrophobocity) {
-        //aminoAcid:Sting
+        //aminoAcid:String
         this.aminoacid = aminoacid.intern();
         String tmp = this.aminoacid;
 
@@ -74,14 +70,9 @@ public class Vertex {
         this.hydrophobocity = hydrophobocity;
         tmp += ":" + this.hydrophobocity.toString().intern();
 
-//        //windowPosition:int
-//        this.windowPos = -1;
-//        tmp += ":" + this.windowPos;
-
         //create internal id
         id = tmp;
     }
-
 
 
     @Override

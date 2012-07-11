@@ -2,6 +2,7 @@ package markov;
 
 import interfaces.Predictor;
 import interfaces.PredictorFactory;
+import markov.layout.CombinedNet;
 import markov.layout.Markov;
 
 /**
@@ -17,7 +18,8 @@ public class MarkovPredictorFactory implements PredictorFactory {
 
     @Override
     public Predictor getInstance() {
-        Markov mareike = new Markov();
+        Markov mareike = new CombinedNet();
+//        Markov mareike = new TripleNet();
 
         if (range != null) {
             mareike.setMappingContValuesToNodes(range);

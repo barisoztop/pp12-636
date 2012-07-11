@@ -29,4 +29,9 @@ public abstract class Classificator {
 	public Double getClassRateComplete() {
 		return classRateComplete;
 	}
+
+	@Override
+	public String toString() {
+		return classRateComplete+":"+classRateTmh+":"+classRateNonTmh;
+	}
 }

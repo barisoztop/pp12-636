@@ -9,17 +9,17 @@ import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
 
 /**
- * normalizes all weights of all outgoing edges to be in sum 1<br> sets edges
- * without weight to smalles weight found
+ * normalizes all weights of all outgoing edges to be in accordance to weight
+ * with highes value<br> sets edges without weight to smalles weight found
  *
  * @author rgreil
  */
-public final class NormalizerSumOfWeightsToOne extends Normalizer {
+public final class NormalizerHighestWeightToOne extends Normalizer {
 
-	public NormalizerSumOfWeightsToOne(MarkovDirectedWeightedGraph graph) {
+	public NormalizerHighestWeightToOne(MarkovDirectedWeightedGraph graph) {
 		this.graph = graph;
 		neighbor = new DirectedNeighborIndex(this.graph);
-		logger = Logger.getLogger(NormalizerSumOfWeightsToOne.class);
+		logger = Logger.getLogger(NormalizerHighestWeightToOne.class);
 		compute();
 	}
 
@@ -28,9 +28,9 @@ public final class NormalizerSumOfWeightsToOne extends Normalizer {
 		long start = System.currentTimeMillis();
 		for (Vertex source : graph.vertexSet()) {
 			ArrayList<Edge> listEdge = new ArrayList<Edge>();
-			double sumWeightComplete = 0d;
-			double sumWeightTmh = 0d;
-			double sumWeightNonTmh = 0d;
+			double maxWeightComplete = Double.MIN_VALUE;
+			double maxWeightTmh = Double.MIN_VALUE;
+			double maxWeightNonTmh = Double.MIN_VALUE;
 			double minWeightTmh = Double.MAX_VALUE;
 			double minWeightNonTmh = Double.MAX_VALUE;
 			for (Vertex target : neighbor.successorListOf(source)) {
@@ -38,37 +38,40 @@ public final class NormalizerSumOfWeightsToOne extends Normalizer {
 				listEdge.add(e);
 
 				double weightComplete = e.getWeightComplete();
-				sumWeightComplete += weightComplete;
+				if (weightComplete > maxWeightComplete) {
+					maxWeightComplete = weightComplete;
+				}
 
 				double weightTmh = e.getWeightTmh();
-				if (weightTmh != 0d && weightTmh < minWeightTmh) {
+				if (weightTmh > maxWeightTmh) {
+					maxWeightTmh = weightTmh;
+				} else if (weightTmh != 0d && weightTmh < minWeightTmh) {
 					minWeightTmh = weightTmh;
 				}
-				sumWeightTmh += weightTmh;
 
 				double weightNonTmh = e.getWeightNonTmh();
-				if (weightNonTmh != 0 && weightNonTmh < minWeightNonTmh) {
+				if (weightNonTmh > maxWeightNonTmh) {
+					maxWeightNonTmh = weightNonTmh;
+				} else if (weightNonTmh != 0 && weightNonTmh < minWeightNonTmh) {
 					minWeightNonTmh = weightNonTmh;
 				}
-				sumWeightNonTmh += weightNonTmh;
-
 			}
 			for (Edge e : listEdge) {
 				//calculate new weights
-				double newWeightComplete = e.getWeightComplete() / sumWeightComplete;
+				double newWeightComplete = e.getWeightComplete() / maxWeightComplete;
 
 				double newWeightTmh = e.getWeightTmh();
 				if (newWeightTmh == 0d) {
-					newWeightTmh = minWeightTmh / sumWeightTmh;
+					newWeightTmh = minWeightTmh / maxWeightComplete;
 				} else {
-					newWeightTmh /= sumWeightTmh;
+					newWeightTmh /= maxWeightComplete;
 				}
 
 				double newWeightNonTmh = e.getWeightNonTmh();
 				if (newWeightNonTmh == 0d) {
-					newWeightNonTmh = minWeightNonTmh / sumWeightNonTmh;
+					newWeightNonTmh = minWeightNonTmh / maxWeightComplete;
 				} else {
-					newWeightNonTmh /= sumWeightNonTmh;
+					newWeightNonTmh /= maxWeightComplete;
 				}
 
 				//set new weights
@@ -77,7 +80,6 @@ public final class NormalizerSumOfWeightsToOne extends Normalizer {
 				e.setWeight(false, newWeightNonTmh);
 			}
 		}
-
 		logger.info("NORMALIZING ALL: weightAll && weightTmh && weightNonTmh");
 		long end = System.currentTimeMillis();
 		logger.trace("normalized in " + (end - start) + " ms");

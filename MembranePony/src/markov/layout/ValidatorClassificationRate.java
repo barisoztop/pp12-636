@@ -32,7 +32,7 @@ public class ValidatorClassificationRate extends Validator {
     }
 
     @Override
-    public void validate(Markov markovGraph) {
+    public void validate(CombinedNet markovGraph) {
         int tested = 0;
 //        DefaultDirectedWeightedGraph<MarkovVertex, DefaultWeightedEdge> graph = markovGraph.getGraph();
         MarkovGraph<MarkovVertex, MarkovEdge> graph = markovGraph.getGraph();
