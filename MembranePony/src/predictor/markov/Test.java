@@ -12,9 +12,9 @@ import interfaces.Sequence;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import markov.layout.Markov;
-import markov.layout.TripleNet;
 import org.apache.log4j.Logger;
+import predictor.markov.layout.Markov;
+import predictor.markov.layout.TripleNet;
 
 /**
  *

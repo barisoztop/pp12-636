@@ -2,8 +2,8 @@ package predictor.markov;
 
 import interfaces.Predictor;
 import interfaces.PredictorFactory;
-import markov.layout.CombinedNet;
-import markov.layout.Markov;
+import predictor.markov.layout.CombinedNet;
+import predictor.markov.layout.Markov;
 
 /**
  * predictor factory for markov predictor. everyone except robert should use

@@ -1,29 +1,55 @@
-package markov.layout;
+package predictor.markov.layout;
 
 import data.Constants;
+import data.Constants;
+import interfaces.Prediction;
 import interfaces.Prediction;
 import interfaces.Predictor;
+import interfaces.Predictor;
+import interfaces.Result;
 import interfaces.Result;
 import interfaces.Sequence;
+import interfaces.Sequence;
+import interfaces.SequencePosition;
 import interfaces.SequencePosition;
 import java.io.BufferedWriter;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.RandomAccessFile;
 import java.util.Map;
+import java.util.Map;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import markov.graph.Edge;
-import markov.graph.GraphXmlHandler;
-import markov.graph.MarkovDirectedWeightedGraph;
-import markov.graph.MarkovEdgeNameProvider;
-import markov.graph.MarkovVertexNameProvider;
-import markov.graph.Vertex;
-import markov.normalizer.Normalizer;
+import javax.xml.parsers.SAXParserFactory;
+import org.apache.log4j.Logger;
 import org.apache.log4j.Logger;
 import org.jgrapht.ext.GraphMLExporter;
+import org.jgrapht.ext.GraphMLExporter;
+import predictor.markov.graph.Edge;
+import predictor.markov.graph.Edge;
+import predictor.markov.graph.GraphXmlHandler;
+import predictor.markov.graph.GraphXmlHandler;
+import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovEdgeNameProvider;
+import predictor.markov.graph.MarkovEdgeNameProvider;
+import predictor.markov.graph.MarkovVertexNameProvider;
+import predictor.markov.graph.MarkovVertexNameProvider;
+import predictor.markov.graph.Vertex;
+import predictor.markov.graph.Vertex;
+import predictor.markov.normalizer.Normalizer;
+import predictor.markov.normalizer.Normalizer;
+
+
 
 /**
  *
@@ -90,7 +116,7 @@ public abstract class Markov implements Predictor {
 	public abstract void train(Sequence[] trainingCases);
 
 	@Override
-	public void save(File model) throws Exception {
+	public final void save(File model) throws Exception {
 		if (!trained) {
 			throw new VerifyError("Can not save an empty model! Train it before!");
 		}
@@ -117,7 +143,7 @@ public abstract class Markov implements Predictor {
 	}
 
 	@Override
-	public void load(File model) throws Exception {
+	public final void load(File model) throws Exception {
 		if (trained) {
 			throw new VerifyError("Model can not be overloaded! Create new emtpy Instance of markov!");
 		}
@@ -209,7 +235,7 @@ public abstract class Markov implements Predictor {
 		return result;
 	}
 
-	protected void addEdge(Vertex source, SequencePosition spSource, Vertex target, SequencePosition spTarget, boolean middle) {
+	protected final void addEdge(Vertex source, SequencePosition spSource, Vertex target, SequencePosition spTarget, boolean middle) {
 		if (!windowNew) {
 			return;
 		}
@@ -348,3 +374,4 @@ public abstract class Markov implements Predictor {
 		}
 	}
 }
+

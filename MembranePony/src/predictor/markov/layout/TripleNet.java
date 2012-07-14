@@ -1,4 +1,4 @@
-package markov.layout;
+package predictor.markov.layout;
 
 import data.AminoAcid;
 import data.Constants;
@@ -13,13 +13,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import markov.classificator.Classificator;
-import markov.classificator.ClassificatorBayes;
-import markov.graph.Edge;
-import markov.graph.MarkovDirectedWeightedGraph;
-import markov.graph.Vertex;
-import markov.normalizer.Normalizer;
-import markov.normalizer.NormalizerMarkov;
+import predictor.markov.classificator.Classificator;
+import predictor.markov.classificator.ClassificatorBayes;
+import predictor.markov.graph.Edge;
+import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.Vertex;
+import predictor.markov.normalizer.Normalizer;
+import predictor.markov.normalizer.NormalizerMarkov;
+
+
 
 /**
  *

@@ -1,12 +1,10 @@
-package markov.normalizer;
+package predictor.markov.normalizer;
 
-import data.Constants;
-import java.util.ArrayList;
-import markov.graph.Edge;
-import markov.graph.MarkovDirectedWeightedGraph;
-import markov.graph.Vertex;
 import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
+import predictor.markov.graph.Edge;
+import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.Vertex;
 
 /**
  *

@@ -1,8 +1,8 @@
-package markov.classificator;
+package predictor.markov.classificator;
 
 import java.util.List;
-import markov.graph.Edge;
 import org.apache.log4j.Logger;
+import predictor.markov.graph.Edge;
 
 /**
  * naive bayes somehow modified to work with non-double values
