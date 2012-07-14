@@ -1,4 +1,4 @@
-package markov.graph;
+package predictor.markov.graph;
 
 import java.text.NumberFormat;
 import java.util.Locale;

@@ -1,4 +1,4 @@
-package markov.graph;
+package predictor.markov.graph;
 
 /**
  * simple class for represeting a morkov vertex specified by<br> <li>

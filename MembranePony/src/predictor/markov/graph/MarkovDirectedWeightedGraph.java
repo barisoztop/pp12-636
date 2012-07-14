@@ -1,4 +1,4 @@
-package markov.graph;
+package predictor.markov.graph;
 
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
