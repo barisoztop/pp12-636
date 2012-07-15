@@ -281,22 +281,21 @@ public class DataReader {
 	}
 
 	private static void hydrophobicityWindowCalculation(Sequence[] sequences) {
-		logger.info("Performing hydrophobicity window calculation on " + sequences.length + " sequences.");
 
-		for (SequencePosition p : sequences[0].getSequence()) {
-			System.out.print(Math.round(p.getHydrophobicity() * 1000) / 1000d + "\t");
-		}
+		logger.info("Performing hydrophobicity window calculation on "+sequences.length+" sequences.");
+		
+//		for(SequencePosition p : sequences[0].getSequence()) 
+//			System.out.print(Math.round(p.getHydrophobicity()*1000)/1000d+"\t");
+//		
+//		System.out.println();
+		
 
-		System.out.println();
-
-
-
-		for (Sequence s : sequences) {
+		
+		for(Sequence s : sequences) {
 			double[] hydrophobicity = new double[s.length()];
-			for (int i = 0; i < s.length(); i++) {
+
+			for(int i=0; i<s.length(); i++) 
 				hydrophobicity[i] = s.getSequence()[i].getHydrophobicity();
-			}
-//			System.out.println();
 
 			for (int i = 0; i < s.length(); i++) {
 				SequencePositionImpl pos = (SequencePositionImpl) s.getSequence()[i];
