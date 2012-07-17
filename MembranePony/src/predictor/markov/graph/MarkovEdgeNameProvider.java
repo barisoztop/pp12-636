@@ -14,6 +14,7 @@ public class MarkovEdgeNameProvider implements EdgeNameProvider<Edge>{
 	public MarkovEdgeNameProvider() {
 		nf.setMinimumFractionDigits(0);
 		nf.setMinimumIntegerDigits(1);
+		nf.setGroupingUsed(false);
 	}
 
     @Override

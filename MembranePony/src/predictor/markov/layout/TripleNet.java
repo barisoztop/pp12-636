@@ -13,15 +13,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import predictor.markov.classificator.Classificator;
-import predictor.markov.classificator.ClassificatorBayes;
+import predictor.markov.classifier.Classifier;
+import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.graph.Edge;
 import predictor.markov.graph.MarkovDirectedWeightedGraph;
 import predictor.markov.graph.Vertex;
 import predictor.markov.normalizer.Normalizer;
 import predictor.markov.normalizer.NormalizerMarkov;
-
-
 
 /**
  *
@@ -32,13 +30,13 @@ public class TripleNet extends Markov {
 	public TripleNet() {
 //		logger = Logger.getLogger(TripleNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
-		wintermute = new MarkovDirectedWeightedGraph<Vertex, Edge>(Edge.class);
+		wintermute = new MarkovDirectedWeightedGraph();
+		mapVertex = new HashMap<String, Vertex>();
 	}
 
 	@Override
 	protected void addVertices() {
 		long start = System.currentTimeMillis();
-		mapVertex = new HashMap<String, Vertex>();
 		logger.info("creating vertices");
 		Vertex[] vArray = new Vertex[]{TMH, NON_TMH, GECONNYSE};
 		for (Vertex v : vArray) {
@@ -49,14 +47,14 @@ public class TripleNet extends Markov {
 		for (AminoAcid aa : AminoAcid.values()) {
 			//aa = the aminoacid of all available at AminoAcid.values()
 			tmp = new Vertex(aa, SpecialVertex.NULL, Double.NaN);
-			mapVertex.put(tmp.getAminoacid() + ":" + tmp.getSse() + ":" + tmp.getHydrophobocity(), tmp);
+			mapVertex.put(tmp.toString(), tmp);
 			wintermute.addVertex(tmp);
 		}
 
 		for (SSE sse : SSE.values()) {
 			//sse = the secondary structure of all available at SSE.values()
 			tmp = new Vertex(SpecialVertex.NULL, sse, Double.NaN);
-			mapVertex.put(tmp.getAminoacid() + ":" + tmp.getSse() + ":" + tmp.getHydrophobocity(), tmp);
+			mapVertex.put(tmp.toString(), tmp);
 			wintermute.addVertex(tmp);
 		}
 
@@ -65,7 +63,7 @@ public class TripleNet extends Markov {
 			//hp = the hydrophobocity value from min to max
 			tmp = new Vertex(SpecialVertex.NULL, SpecialVertex.NULL, round(value_hp));
 			logger.trace("created vertex: " + tmp);
-			mapVertex.put(tmp.getAminoacid() + ":" + tmp.getSse() + ":" + tmp.getHydrophobocity(), tmp);
+			mapVertex.put(tmp.toString(), tmp);
 			wintermute.addVertex(tmp);
 			value_hp += hpSteppingValue;
 		}
@@ -189,24 +187,24 @@ public class TripleNet extends Markov {
 				//classification
 
 
-				double aa=0;
-				double sse=0;
-				double hp=0;
+				double aa = 0;
+				double sse = 0;
+				double hp = 0;
 				{
-				//meaning
+					//meaning
 					aa = 0;
 					for (Edge edge : listWindowClonedEdgesAa) {
-						aa+=edge.getWeightComplete();
+						aa += edge.getWeightComplete();
 					}
 
 					sse = 0;
 					for (Edge edge : listWindowClonedEdgesSse) {
-						sse+=edge.getWeightComplete();
+						sse += edge.getWeightComplete();
 					}
 
 					hp = 0;
 					for (Edge edge : listWindowClonedEdgesHp) {
-						hp+=edge.getWeightComplete();
+						hp += edge.getWeightComplete();
 					}
 
 
@@ -222,9 +220,9 @@ public class TripleNet extends Markov {
 
 
 
-				Classificator crrAa = new ClassificatorBayes(listWindowClonedEdgesAa);
-				Classificator crrSse = new ClassificatorBayes(listWindowClonedEdgesSse);
-				Classificator crrHp = new ClassificatorBayes(listWindowClonedEdgesHp);
+				Classifier crrAa = new ClassifierBayes(listWindowClonedEdgesAa);
+				Classifier crrSse = new ClassifierBayes(listWindowClonedEdgesSse);
+				Classifier crrHp = new ClassifierBayes(listWindowClonedEdgesHp);
 
 //				Classificator crmbAa = new ClassificatorModBayes(listWindowClonedEdgesAa);
 //				Classificator crmbSse = new ClassificatorModBayes(listWindowClonedEdgesSse);
@@ -320,21 +318,21 @@ public class TripleNet extends Markov {
 				double foundNonTmh = 1;
 
 				if (weightAaTmh > weightAaNonTmh) {
-					foundTmh *=aaT;
+					foundTmh *= aaT;
 				} else if (weightAaTmh < weightAaNonTmh) {
-					foundNonTmh *=aaN;
+					foundNonTmh *= aaN;
 				}
 
 				if (weightSseTmh > weightSseNonTmh) {
-					foundTmh *=sseT;
+					foundTmh *= sseT;
 				} else if (weightSseTmh < weightSseNonTmh) {
-					foundNonTmh *=sseN;
+					foundNonTmh *= sseN;
 				}
 
 				if (weightHpTmh > weightHpNonTmh) {
-					foundTmh *=hpT;
+					foundTmh *= hpT;
 				} else if (weightHpTmh < weightHpNonTmh) {
-					foundNonTmh *=hpN;
+					foundNonTmh *= hpN;
 				}
 
 //				System.out.println("PRED: TMH: " + foundTmh + " | NON_TMH: " + foundNonTmh);
@@ -543,7 +541,7 @@ public class TripleNet extends Markov {
 		long end = System.currentTimeMillis();
 
 //						Normalizer norm = new NormalizerHighestWeightToOne(wintermute);
-		Normalizer norm = new NormalizerMarkov(wintermute);
+//		Normalizer norm = new NormalizerMarkov(wintermute);
 
 		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
 //		Normalizer nhwto = new NormalizerHighestWeighToOne(wintermute);
@@ -566,5 +564,6 @@ public class TripleNet extends Markov {
 //        } catch (IOException ex) {
 //            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
 //        }
+		pruneNotUsedVertices();
 	}
 }

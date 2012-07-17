@@ -1,55 +1,33 @@
 package predictor.markov.layout;
 
 import data.Constants;
-import data.Constants;
-import interfaces.Prediction;
 import interfaces.Prediction;
 import interfaces.Predictor;
-import interfaces.Predictor;
-import interfaces.Result;
 import interfaces.Result;
 import interfaces.Sequence;
-import interfaces.Sequence;
-import interfaces.SequencePosition;
 import interfaces.SequencePosition;
 import java.io.BufferedWriter;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.RandomAccessFile;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParserFactory;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Logger;
-import org.jgrapht.ext.GraphMLExporter;
 import org.jgrapht.ext.GraphMLExporter;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.Edge;
-import predictor.markov.graph.GraphXmlHandler;
 import predictor.markov.graph.GraphXmlHandler;
 import predictor.markov.graph.MarkovDirectedWeightedGraph;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
-import predictor.markov.graph.MarkovEdgeNameProvider;
 import predictor.markov.graph.MarkovEdgeNameProvider;
 import predictor.markov.graph.MarkovVertexNameProvider;
-import predictor.markov.graph.MarkovVertexNameProvider;
-import predictor.markov.graph.Vertex;
 import predictor.markov.graph.Vertex;
 import predictor.markov.normalizer.Normalizer;
-import predictor.markov.normalizer.Normalizer;
-
-
 
 /**
  *
@@ -59,7 +37,7 @@ public abstract class Markov implements Predictor {
 
 	protected final static Logger logger = Logger.getLogger(Markov.class);
 	protected Map<String, Vertex> mapVertex;
-	protected MarkovDirectedWeightedGraph<Vertex, Edge> wintermute;
+	protected MarkovDirectedWeightedGraph wintermute;
 	protected Normalizer norm;
 	protected double hpSteppingValue = 0.1d;
 	protected double hpRoundingValue = 10d;
@@ -115,15 +93,36 @@ public abstract class Markov implements Predictor {
 	@Override
 	public abstract void train(Sequence[] trainingCases);
 
+	protected final void pruneNotUsedVertices() {
+		long start = System.currentTimeMillis();
+		logger.info("pruning vertices with no edges");
+		List<String> toBeRemoved = new ArrayList<String>();
+		int counter = 0;
+		for (Vertex vertex : mapVertex.values()) {
+			if (wintermute.inDegreeOf(vertex) == 0 && wintermute.outDegreeOf(vertex) == 0) {
+				wintermute.removeVertex(vertex);
+				toBeRemoved.add(vertex.toString());
+				counter++;
+			}
+		}
+
+
+		for (String string : toBeRemoved) {
+			mapVertex.remove(string);
+		}
+		long end = System.currentTimeMillis();
+		logger.info("-> " + counter + " vertices in " + (end - start) + " ms");
+	}
+
 	@Override
 	public final void save(File model) throws Exception {
+		long start = System.currentTimeMillis();
 		if (!trained) {
 			throw new VerifyError("Can not save an empty model! Train it before!");
 		}
-		long start = System.currentTimeMillis();
 
 		logger.info("saving " + model.getAbsolutePath() + " (v: " + wintermute.vertexSet().size()
-				+ " | e: " + wintermute.edgeSet().size() + ")");
+						+ " | e: " + wintermute.edgeSet().size() + ")");
 		BufferedWriter bw = new BufferedWriter(new FileWriter(model));
 		GraphMLExporter g = new GraphMLExporter(new MarkovVertexNameProvider(), null, new MarkovEdgeNameProvider(), null);
 		g.export(bw, wintermute);
@@ -144,11 +143,11 @@ public abstract class Markov implements Predictor {
 
 	@Override
 	public final void load(File model) throws Exception {
+		long start = System.currentTimeMillis();
 		if (trained) {
 			throw new VerifyError("Model can not be overloaded! Create new emtpy Instance of markov!");
 		}
 
-		long start = System.currentTimeMillis();
 		logger.info("reading " + model.getAbsolutePath() + " (" + (model.length() / 1024) + " kb)");
 
 		GraphXmlHandler graphXmlHandler = new GraphXmlHandler();
@@ -170,6 +169,7 @@ public abstract class Markov implements Predictor {
 			String sse = src[1].intern();
 			double hp = Double.parseDouble(src[2].intern());
 			Vertex source = new Vertex(aa, sse, hp);
+			mapVertex.put(source.toString(), source);
 
 			//target
 			String[] trg = parts[1].split(":"); //target=aa:sse:hp
@@ -177,6 +177,7 @@ public abstract class Markov implements Predictor {
 			sse = trg[1].intern();
 			hp = Double.parseDouble(trg[2].intern());
 			Vertex target = new Vertex(aa, sse, hp);
+			mapVertex.put(target.toString(), target);
 
 			//add vertices, edge
 			if (!wintermute.containsVertex(source)) {
@@ -189,21 +190,20 @@ public abstract class Markov implements Predictor {
 
 			//edge
 			String[] edgeId = parts[2].split(":"); //id=weight:weightTmh:weightNonTmh
-
 			double weightComplete = Double.parseDouble(edgeId[0]);
 			double weightTmh = Double.parseDouble(edgeId[1]);
 			double weightNonTmh = Double.parseDouble(edgeId[2]);
+
 			{
+				edge.setWeightComplete(weightComplete);
+				edge.setWeightTmh(weightTmh);
+				edge.setWeightNonTmh(weightNonTmh);
 				//verify weight
-				if (weightComplete != (weightTmh + weightNonTmh)) {
+				if ((weightComplete - (weightTmh + weightNonTmh)) >= 0.001d) {
 					throw new VerifyError("Edge is corrupted and can not be set! Export new model!"
-							+ "\nedge: " + edge);
+									+ "\nedge: " + edge);
 				}
 			}
-			wintermute.setEdgeWeight(edge, weightComplete);
-			edge.setWeightComplete(weightComplete);
-			edge.setWeight(true, weightTmh);
-			edge.setWeight(false, weightNonTmh);
 		}
 
 		//missing vertices, which have no edges
@@ -235,30 +235,30 @@ public abstract class Markov implements Predictor {
 		return result;
 	}
 
-	protected final void addEdge(Vertex source, SequencePosition spSource, Vertex target, SequencePosition spTarget, boolean middle) {
+	protected final Edge addEdge(Vertex source, SequencePosition spSource, Vertex target, SequencePosition spTarget, boolean middle) {
 		if (!windowNew) {
-			return;
+			return null;
 		}
-		boolean switchForRealClass = false;
+		boolean sourceIsTmh = false;
 
 		Result result = spSource.getRealClass();
 		if (result.equals(Result.TMH)) {
-			switchForRealClass = true;
+			sourceIsTmh = true;
 			if (middle) {
 				target = TMH;
 			}
 		} else if (result.equals(Result.NON_TMH)) {
-			switchForRealClass = false;
+			sourceIsTmh = false;
 			if (middle) {
 				target = NON_TMH;
 			}
 		} else if (result.equals(Result.INSIDE)) {
-			switchForRealClass = false;
+			sourceIsTmh = false;
 			if (middle) {
 				target = NON_TMH;
 			}
 		} else if (result.equals(Result.OUTSIDE)) {
-			switchForRealClass = false;
+			sourceIsTmh = false;
 			if (middle) {
 				target = NON_TMH;
 			}
@@ -271,23 +271,30 @@ public abstract class Markov implements Predictor {
 		if (edge == null) {
 			if (!wintermute.containsVertex(source)) {
 				logger.fatal("WARNING: vertex source NOT contained: " + source
-						+ "\nsource: " + source + " | spSource: " + spSource + " | target: " + target + " | middle: " + middle);
+								+ "\nsource: " + source + " | spSource: " + spSource + " | target: " + target + " | middle: " + middle);
 			}
 			if (!wintermute.containsVertex(target)) {
 				logger.fatal("WARNING: vertex target NOT contained: " + target
-						+ "\nsource: " + source + " | spSource: " + spSource + " | target: " + target + " | middle: " + middle);
+								+ "\nsource: " + source + " | spSource: " + spSource + " | target: " + target + " | middle: " + middle);
 			}
 			edge = wintermute.addEdge(source, target);
-			wintermute.setEdgeWeight(edge, 1);
-			edge.setWeight(switchForRealClass, 1);
 			edge.setWeightComplete(1);
+			if (sourceIsTmh) {
+				edge.setWeightTmh(1);
+			} else {
+				edge.setWeightNonTmh(1);
+			}
 			logger.trace("EDGE:CREATED: " + edge);
 		} else {
-			wintermute.setEdgeWeight(edge, (wintermute.getEdgeWeight(edge) + 1));
-			edge.setWeight(switchForRealClass, edge.getWeight(switchForRealClass) + 1);
 			edge.setWeightComplete(edge.getWeightComplete() + 1);
+			if (sourceIsTmh) {
+				edge.setWeightTmh(edge.getWeightTmh() + 1);
+			} else {
+				edge.setWeightNonTmh(edge.getWeightNonTmh() + 1);
+			}
 			logger.trace("EDGE:PUSHED: " + edge);
 		}
+		return edge;
 	}
 
 	protected final void verify(File model) throws Exception {
@@ -301,9 +308,9 @@ public abstract class Markov implements Predictor {
 					logger.info("model is OK and not corrupted");
 				} else {
 					throw new VerifyError("Model is corrupted and can not be read! Export new model!"
-							+ "\nvertexSet: " + wintermute.vertexSet().size() + " | edgeSet: " + wintermute.edgeSet().size()
-							+ "\nACTUAL (new): " + act
-							+ "\nSAVED (old): " + old);
+									+ "\nvertexSet: " + wintermute.vertexSet().size() + " | edgeSet: " + wintermute.edgeSet().size()
+									+ "\nACTUAL (new): " + act
+									+ "\nSAVED (old): " + old);
 				}
 			}
 		}
@@ -362,16 +369,61 @@ public abstract class Markov implements Predictor {
 		return hpSteppingValue;
 	}
 
-	public final MarkovDirectedWeightedGraph<Vertex, Edge> getGraph() {
+	public final MarkovDirectedWeightedGraph getGraph() {
 		return wintermute;
 	}
 
-	public final Vertex getVertexReference(String id) {
+	protected final Vertex getVertexReference(String id) {
 		if (mapVertex.containsKey(id)) {
 			return mapVertex.get(id);
 		} else {
 			return null;
 		}
 	}
-}
 
+	public final String printRealClass(String prefix, List<Result> values) {
+		StringBuilder sb = new StringBuilder(prefix);
+		for (Result result : values) {
+			if (result.equals(Result.TMH)) {
+				sb.append("T");
+
+			} else if (result.equals(Result.NON_TMH)) {
+				sb.append(".");
+			} else {
+				sb.append("@");
+			}
+		}
+		return sb.toString();
+	}
+
+	public final String printHPalgebraicSign(String prefix, Sequence seq) {
+		StringBuilder sb = new StringBuilder(prefix);
+		for (SequencePosition sp : seq.getSequence()) {
+			if (sp.getHydrophobicity() > 0) {
+				sb.append("+");
+			} else {
+				sb.append("-");
+			}
+		}
+		return sb.toString();
+	}
+
+	public final String printHPvalues(String prefix, Sequence seq) {
+		NumberFormat nf = NumberFormat.getIntegerInstance(Locale.ENGLISH);
+		nf.setMaximumFractionDigits(0);
+		nf.setMinimumFractionDigits(0);
+		nf.setMaximumIntegerDigits(1);
+		nf.setMinimumIntegerDigits(1);
+		StringBuilder sb = new StringBuilder(prefix);
+		for (SequencePosition sp : seq.getSequence()) {
+			double hp = sp.getHydrophobicity();
+			String out = nf.format(hp);
+			if (out.contains("-")) {
+				sb.append(out.substring(1, 2));
+			} else {
+				sb.append(out);
+			}
+		}
+		return sb.toString();
+	}
+}

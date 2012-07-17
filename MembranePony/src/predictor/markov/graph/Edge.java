@@ -22,12 +22,8 @@ public class Edge extends DefaultWeightedEdge {
 		return weightTmh;
 	}
 
-	public void setWeight(boolean tmh, double d) {
-		if (tmh) {
-			weightTmh = d;
-		} else {
-			weightNonTmh = d;
-		}
+	public void setWeightTmh(double d) {
+		weightTmh = d;
 	}
 
 	public double getWeightComplete() {
@@ -38,17 +34,21 @@ public class Edge extends DefaultWeightedEdge {
 		weightComplete = d;
 	}
 
-	public double getWeight(boolean tmh) {
-		double result = -1d;
-		if (tmh) {
-			result = weightTmh;
-		} else {
-			result = weightNonTmh;
-		}
-		return result;
-	}
-
 	public double getWeightNonTmh() {
 		return weightNonTmh;
+	}
+
+	public void setWeightNonTmh(double d) {
+		weightNonTmh = d;
+	}
+
+	@Override
+	public Vertex getSource() {
+		return (Vertex) super.getSource();
+	}
+
+	@Override
+	public Vertex getTarget() {
+		return (Vertex) super.getTarget();
 	}
 }
