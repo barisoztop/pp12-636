@@ -53,7 +53,6 @@ public class Test {
 		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
 
-		Collections.shuffle(Arrays.asList(sequences));
 
 //		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 //		EvaluationResult result = eval.evaluate();
