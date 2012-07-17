@@ -3,6 +3,7 @@ package predictor.markov.graph;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * simple class for represeting a morkov vertex specified by<br> <li>
@@ -18,7 +19,7 @@ public class Vertex {
 	private final Double hydrophobocity;
 //    private final int windowPos;
 	private final String id;
-	private HashMap<String, List<Edge[]>> windows;
+	private Map<String, List<Edge[]>> windows;
 	//    private int realClassInside = 0;
 //    private int realClassOutside = 0;
 //    private int realClassTmh = 0;
@@ -121,15 +122,25 @@ public class Vertex {
 	}
 
 	public void addWindowEdge(Edge[] windowEdge) {
-		String query = windowEdge[0].getSource()+""+windowEdge[windowEdge.length].getTarget();
+		String query = "";
+		for (Edge edge : windowEdge) {
+			query+=edge.getSource().toString()+edge.getTarget().toString();
+		}
+		if (windows.containsKey(query)) {
+			windows.get(query).add(windowEdge);
+		} else {
+			List<Edge[]> list = new ArrayList<Edge[]>();
+			list.add(windowEdge);
+			windows.put(query, list);
+		}
 	}
 
-	public List<Edge[]> getWindowEdge() {
+	public Map<String, List<Edge[]>> getWindowEdge() {
 		return windows;
 	}
 
-	public Edge[] getWindowEdge(int i) {
-		return windows.get(i);
+	public List<Edge[]> getWindowEdge(String key) {
+		return windows.get(key);
 	}
 
 //    public String getId() {
