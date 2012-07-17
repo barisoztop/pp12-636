@@ -1,4 +1,4 @@
-package predictor.markov.classificator;
+package predictor.markov.classifier;
 
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -9,11 +9,11 @@ import predictor.markov.graph.Edge;
  *
  * @author greil
  */
-public final class ClassificatorRatio extends Classificator {
+public final class ClassifierRatio extends Classifier {
 
-	public ClassificatorRatio(List<Edge> listEdge) {
+	public ClassifierRatio(List<Edge> listEdge) {
 		this.listEdge = listEdge;
-		logger = Logger.getLogger(ClassificatorRatio.class);
+		logger = Logger.getLogger(ClassifierRatio.class);
 		compute();
 	}
 

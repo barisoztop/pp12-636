@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import predictor.markov.classificator.Classificator;
-import predictor.markov.classificator.ClassificatorBayes;
-import predictor.markov.classificator.ClassificatorModBayes;
-import predictor.markov.classificator.ClassificatorRatio;
+import predictor.markov.classifier.Classifier;
+import predictor.markov.classifier.ClassifierBayes;
+import predictor.markov.classifier.ClassifierModBayes;
+import predictor.markov.classifier.ClassifierRatio;
 import predictor.markov.graph.Edge;
 import predictor.markov.graph.MarkovDirectedWeightedGraph;
 import predictor.markov.graph.Vertex;
@@ -26,118 +26,118 @@ import predictor.markov.graph.Vertex;
  */
 public class CombinedNet extends Markov {
 
-    public CombinedNet() {
+	public CombinedNet() {
 //		logger = Logger.getLogger(MarkovOneNet.class);
-        logger.info("spawning new " + this.getClass().getSimpleName());
-        wintermute = new MarkovDirectedWeightedGraph<Vertex, Edge>(Edge.class);
-    }
+		logger.info("spawning new " + this.getClass().getSimpleName());
+		wintermute = new MarkovDirectedWeightedGraph();
+		mapVertex = new HashMap<String, Vertex>();
+	}
 
-    @Override
-    protected void addVertices() {
-        long start = System.currentTimeMillis();
-        mapVertex = new HashMap<String, Vertex>();
-        logger.info("creating vertices");
-        Vertex[] vArray = new Vertex[]{TMH, NON_TMH, GECONNYSE};
-        for (Vertex v : vArray) {
-            wintermute.addVertex(v);
-        }
-        //create nodes and add them to the graph
-        for (AminoAcid aa : AminoAcid.values()) {
-            //aa = the aminoacid of all available at AminoAcid.values()
-            for (SSE sse : SSE.values()) {
-                //sse = the secondary structure of all available at SSE.values()
-                double value_hp = HP_MIN;
-                while (value_hp < HP_MAX) {
-                    //hp = the hydrophobocity value from min to max
-                    Vertex tmp = new Vertex(aa, sse, round(value_hp));
-                    logger.trace("created vertex: " + tmp);
-                    mapVertex.put(tmp.getAminoacid() + ":" + tmp.getSse() + ":" + tmp.getHydrophobocity(), tmp);
-                    wintermute.addVertex(tmp);
-                    value_hp += hpSteppingValue;
-                }
-            }
-        }
-        long end = System.currentTimeMillis();
-        logger.info("-> " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
-    }
+	@Override
+	protected void addVertices() {
+		long start = System.currentTimeMillis();
+		logger.info("creating vertices");
+		Vertex[] vArray = new Vertex[]{TMH, NON_TMH, GECONNYSE};
+		for (Vertex v : vArray) {
+			wintermute.addVertex(v);
+		}
+		//create nodes and add them to the graph
+		for (AminoAcid aa : AminoAcid.values()) {
+			//aa = the aminoacid of all available at AminoAcid.values()
+			for (SSE sse : SSE.values()) {
+				//sse = the secondary structure of all available at SSE.values()
+				double value_hp = HP_MIN;
+				while (value_hp < HP_MAX) {
+					//hp = the hydrophobocity value from min to max
+					Vertex tmp = new Vertex(aa, sse, round(value_hp));
+					logger.trace("created vertex: " + tmp);
+					mapVertex.put(tmp.toString(), tmp);
+					wintermute.addVertex(tmp);
+					value_hp += hpSteppingValue;
+				}
+			}
+		}
+		long end = System.currentTimeMillis();
+		logger.info("-> " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
+	}
 
-    @Override
-    public Prediction predict(Sequence sequence) {
-        if (!trained) {
-            throw new VerifyError("Can not predict with an empty model! Train it before!");
-        }
-        checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
-        List<Result> pred = new ArrayList<Result>();
+	@Override
+	public Prediction predict(Sequence sequence) {
+		if (!trained) {
+			throw new VerifyError("Can not predict with an empty model! Train it before!");
+		}
+		checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
+		List<Result> pred = new ArrayList<Result>();
 
-        //debug
+		//debug
 //		List<Double> predTmh = new ArrayList<Double>();
 //		List<Double> predNonTmh = new ArrayList<Double>();
 //		double minTmh = Double.MAX_VALUE;
 //		double minNonTmh = Double.MAX_VALUE;
 //		double maxTmh = Double.MIN_VALUE;
 //		double maxNonTmh = Double.MAX_VALUE;
-        List<Result> predWithExtraWeighting = new ArrayList<Result>();
+		List<Result> predWithExtraWeighting = new ArrayList<Result>();
 
-        List<Result> real = new ArrayList<Result>();
-        for (SequencePosition seas : sequence.getSequence()) {
-            real.add(seas.getRealClass());
-        }
-        int counterFalsePredicted = 0;
-        //debug end
+		List<Result> real = new ArrayList<Result>();
+		for (SequencePosition seas : sequence.getSequence()) {
+			real.add(seas.getRealClass());
+		}
+		int counterFalsePredicted = 0;
+		//debug end
 
-        Result[] predictions = new Result[1];
+		Result[] predictions = new Result[1];
 
 
-        for (SlidingWindow slidingWindow : sequence.getWindows()) {
-            //possible debug
-            Vertex vertexMiddle = null;
-            SequencePosition spMiddle = null;
-            //possible debug end
+		for (SlidingWindow slidingWindow : sequence.getWindows()) {
+			//possible debug
+			Vertex vertexMiddle = null;
+			SequencePosition spMiddle = null;
+			//possible debug end
 
-            List<Edge> listWindowClonedEdges = new ArrayList<Edge>(Constants.WINDOW_LENGTH);
+			List<Edge> listWindowClonedEdges = new ArrayList<Edge>(Constants.WINDOW_LENGTH);
 
-            for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
-                SequencePosition spSource = slidingWindow.getSequence()[i];
-                Vertex vertexSource;
-                SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
-                Vertex vertexTarget;
+			for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+				SequencePosition spSource = slidingWindow.getSequence()[i];
+				Vertex vertexSource;
+				SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+				Vertex vertexTarget;
 
-                //source
-                if (spSource == null) {
-                    //deactivate, if using position based window weighting
-                    continue;
-                } else {
-                    String sourceAa = spSource.getAminoAcid().toString().intern();
-                    String sourceSse = spSource.getSecondaryStructure().toString().intern();
-                    Double sourceHp = round(spSource.getHydrophobicity());
-                    vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
-                }
+				//source
+				if (spSource == null) {
+					//deactivate, if using position based window weighting
+					continue;
+				} else {
+					String sourceAa = spSource.getAminoAcid().toString().intern();
+					String sourceSse = spSource.getSecondaryStructure().toString().intern();
+					Double sourceHp = round(spSource.getHydrophobicity());
+					vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
+				}
 
-                if (i == middle) {
-                    vertexMiddle = vertexSource;
-                    spMiddle = spSource;
-                }
+				if (i == middle) {
+					vertexMiddle = vertexSource;
+					spMiddle = spSource;
+				}
 
-                //target
-                if (spTarget == null) {
-                    //deactivate, if using position based window weighting
-                    continue;
-                } else {
-                    String targetAa = spTarget.getAminoAcid().toString().intern();
-                    String targetSse = spTarget.getSecondaryStructure().toString().intern();
-                    Double targetHp = round(spTarget.getHydrophobicity());
-                    vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
-                }
+				//target
+				if (spTarget == null) {
+					//deactivate, if using position based window weighting
+					continue;
+				} else {
+					String targetAa = spTarget.getAminoAcid().toString().intern();
+					String targetSse = spTarget.getSecondaryStructure().toString().intern();
+					Double targetHp = round(spTarget.getHydrophobicity());
+					vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
+				}
 
-                Edge e = wintermute.getEdge(vertexSource, vertexTarget);
-                if (e != null) {
-                    e = (Edge) e.clone();
-                }
-                listWindowClonedEdges.add(e);
+				Edge e = wintermute.getEdge(vertexSource, vertexTarget);
+				if (e != null) {
+					e = (Edge) e.clone();
+				}
+				listWindowClonedEdges.add(e);
 
-            }
+			}
 
-            {
+			{
 ////				 weight edges -> auslagern in weighting classes
 //				for (int i = 0; i < listWindowClonedEdges.size(); i++) {
 //					Edge e = listWindowClonedEdges.get(i);
@@ -152,23 +152,23 @@ public class CombinedNet extends Markov {
 //					e.setWeightComplete(e.getWeightTmh() + e.getWeightNonTmh());
 //				}
 
-                //classification
+				//classification
 
 
-                Classificator crb = new ClassificatorBayes(listWindowClonedEdges);
-                Classificator crmb = new ClassificatorModBayes(listWindowClonedEdges);
-                Classificator crr = new ClassificatorRatio(listWindowClonedEdges);
+				Classifier crb = new ClassifierBayes(listWindowClonedEdges);
+				Classifier crmb = new ClassifierModBayes(listWindowClonedEdges);
+				Classifier crr = new ClassifierRatio(listWindowClonedEdges);
 
-                double weightTmh = crmb.getClassRateTmh() * crr.getClassRateTmh();
-                double weightNonTmh = crmb.getClassRateNonTmh() * crr.getClassRateNonTmh();
+				double weightTmh = crmb.getClassRateTmh() * crr.getClassRateTmh();
+				double weightNonTmh = crmb.getClassRateNonTmh() * crr.getClassRateNonTmh();
 
 
 
-                //DEBUG
+				//DEBUG
 //				predTmh.add(weightTmh);
 //				predNonTmh.add(weightNonTmh);
 
-                //DEBUG END
+				//DEBUG END
 
 //				//old & not so good, do not use!
 //				Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
@@ -188,7 +188,7 @@ public class CombinedNet extends Markov {
 //				}
 //				//fin & old and not so good
 
-                //new -> schrott
+				//new -> schrott
 //				Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
 //				double weightTmh = crr.getClassRateTmh() / crmb.getClassRateTmh();
 //				if (edgeTmh == null) {
@@ -204,54 +204,54 @@ public class CombinedNet extends Markov {
 //				} else {
 //					weightNonTmh = edgeNonTmh.getWeight()/weightTmh;
 //				}
-                //fin new
+				//fin new
 
-                Result predicted = null;
-                if (weightTmh > weightNonTmh) {
-                    predicted = Result.TMH;
-                } else if (weightTmh < weightNonTmh) {
-                    predicted = Result.NON_TMH;
-                } else {
-                    logger.fatal("WARNING: probability for prediction of TMH (" + weightTmh + ") and NON_TMH (" + weightNonTmh + ") are equal. Prediction set to: " + Result.OUTSIDE);
-                    predicted = Result.OUTSIDE;
-                }
+				Result predicted = null;
+				if (weightTmh > weightNonTmh) {
+					predicted = Result.TMH;
+				} else if (weightTmh < weightNonTmh) {
+					predicted = Result.NON_TMH;
+				} else {
+					logger.fatal("WARNING: probability for prediction of TMH (" + weightTmh + ") and NON_TMH (" + weightNonTmh + ") are equal. Prediction set to: " + Result.OUTSIDE);
+					predicted = Result.OUTSIDE;
+				}
 
-                {
-                    //DEBUG
+				{
+					//DEBUG
 
-                    Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
-                    if (edgeTmh == null) {
+					Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
+					if (edgeTmh == null) {
 //					weightTmh *= normalizedMin;
 //						System.out.println("edgeTmh:NULL");
-                    } else {
-                        weightTmh *= edgeTmh.getWeightComplete();
-                    }
+					} else {
+						weightTmh *= edgeTmh.getWeightComplete();
+					}
 
-                    Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
-                    if (edgeNonTmh == null) {
+					Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
+					if (edgeNonTmh == null) {
 //					weightNonTmh *= normalizedMin;
 //						System.out.println("edgeNonTmh:NULL");
-                    } else {
-                        weightNonTmh *= edgeNonTmh.getWeightComplete();
-                    }
+					} else {
+						weightNonTmh *= edgeNonTmh.getWeightComplete();
+					}
 
-                    if (weightTmh > weightNonTmh) {
-                        predWithExtraWeighting.add(Result.TMH);
-                    } else if (weightTmh < weightNonTmh) {
-                        predWithExtraWeighting.add(Result.NON_TMH);
-                    } else {
-                        predWithExtraWeighting.add(Result.OUTSIDE);
-                    }
-
-
-
-                } //DEBUG END
+					if (weightTmh > weightNonTmh) {
+						predWithExtraWeighting.add(Result.TMH);
+					} else if (weightTmh < weightNonTmh) {
+						predWithExtraWeighting.add(Result.NON_TMH);
+					} else {
+						predWithExtraWeighting.add(Result.OUTSIDE);
+					}
 
 
 
+				} //DEBUG END
 
-                if (spMiddle.getRealClass() != predicted) {
-                    counterFalsePredicted++;
+
+
+
+				if (spMiddle.getRealClass() != predicted) {
+					counterFalsePredicted++;
 //
 //					System.out.println(sequence.getId() + " -> " + vertexMiddle);
 //					System.out.println("\tcrRatio:Tmh: " + crr.getClassRateTmh());
@@ -271,20 +271,20 @@ public class CombinedNet extends Markov {
 //					System.out.println("\t---> RESULT");
 //					System.out.println("\t---> REAL: " + spMiddle.getRealClass());
 //					System.out.println("\t---> PRED: " + predicted);
-                }
-                //TODO: hier noch iwie die wkeit für TMH / NON_TMH in nem array mitspeichern
-                pred.add(predicted);
-            }
-        }
+				}
+				//TODO: hier noch iwie die wkeit für TMH / NON_TMH in nem array mitspeichern
+				pred.add(predicted);
+			}
+		}
 
-        //TODO: hier nochmal son extra check reinzwiefeln, kA ob das was bringt
-        //postprocessing?
-        //tmh ist ja mindestens so 16-20 stellen lang, daher die ergebnisse angucken
-        //n=nontmh | t=tmh
-        //nnnnnnnnnnnnntnnttttttttntttttttttnnnnnnnnnntnnntntntnnnnnnntnnnnnnnnntttttttnttttttnntnttttttnn
-        //alle ns rauswerfen die so zwischen ts sind, alle ts raushauen, wenn ihre position totaler müll ist
-        //evtl die normale sequenz mit mss nochmal überarbeiten udn anhand davon die stellen gucken wo was sein sollte, bzw.
-        //inwieweit das übereinander passt
+		//TODO: hier nochmal son extra check reinzwiefeln, kA ob das was bringt
+		//postprocessing?
+		//tmh ist ja mindestens so 16-20 stellen lang, daher die ergebnisse angucken
+		//n=nontmh | t=tmh
+		//nnnnnnnnnnnnntnnttttttttntttttttttnnnnnnnnnntnnntntntnnnnnnntnnnnnnnnntttttttnttttttnntnttttttnn
+		//alle ns rauswerfen die so zwischen ts sind, alle ts raushauen, wenn ihre position totaler müll ist
+		//evtl die normale sequenz mit mss nochmal überarbeiten udn anhand davon die stellen gucken wo was sein sollte, bzw.
+		//inwieweit das übereinander passt
 
 
 //		if (counterFalsePredicted >= minWrongPredicted) {
@@ -377,7 +377,7 @@ public class CombinedNet extends Markov {
 
 
 
-        //tmh
+		//tmh
 //			System.out.print("\tP(T): ");
 //			for (Double double1 : predTmh) {
 //				System.out.print(nf.format(double1));
@@ -395,90 +395,101 @@ public class CombinedNet extends Markov {
 //			}
 //		}
 
-        predictions = pred.toArray(predictions);
-        if (counterFalsePredicted != 0) {
-            logger.trace("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
-        }
-        return new GenericPrediction(sequence, predictions);
-    }
+		System.out.println(printRealClass("REAL: \t", real));
+		System.out.println(printRealClass("PRED: \t", pred));
+		System.out.println(printHPalgebraicSign("HPas: \t", sequence));
+		System.out.println(printHPvalues("HPval:\t", sequence));
 
-    @Override
-    public void train(Sequence[] trainingCases) {
-        if (trained) {
-            throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
-        }
-        addVertices();
-        long start = System.currentTimeMillis();
-        logger.info("training " + trainingCases.length + " sequences");
-        checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
+		predictions = pred.toArray(predictions);
+		if (counterFalsePredicted != 0) {
+			logger.info("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
+		}
+		return new GenericPrediction(sequence, predictions);
+	}
+
+	@Override
+	public void train(Sequence[] trainingCases) {
+		long start = System.currentTimeMillis();
+		if (trained) {
+			throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
+		}
+		addVertices();
+		logger.info("training " + trainingCases.length + " sequences");
+		checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
 
 
-        for (Sequence sequence : trainingCases) {
-            if (!sequence.containsTransmembrane()) {
-                continue;
-            }
-            for (SlidingWindow slidingWindow : sequence.getWindows()) {
-                int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
-                if (check == 0) {
-                    windowNew = true;
-                } else {
-                    windowNew = false;
-                }
-                logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
+		for (Sequence sequence : trainingCases) {
+			if (!sequence.containsTransmembrane()) {
+				continue;
+			}
+			for (SlidingWindow slidingWindow : sequence.getWindows()) {
+				int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
+				if (check == 0) {
+					windowNew = true;
+				} else {
+					windowNew = false;
+				}
+				logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
 
-                Vertex vertexMiddle = null;
-                SequencePosition spMiddle = null;
+				Vertex vertexMiddle = null;
+				SequencePosition spMiddle = null;
 
-                for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
-                    SequencePosition spSource = slidingWindow.getSequence()[i];
-                    Vertex vertexSource = null;
-                    SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
-                    Vertex vertexTarget = null;
+				List<Edge> windowEdgeList = new ArrayList<Edge>();
 
-                    //source
-                    if (spSource == null) {
-                        continue;
-                    } else {
-                        String sourceAa = spSource.getAminoAcid().toString().intern();
-                        String sourceSse = spSource.getSecondaryStructure().toString().intern();
-                        Double sourceHp = round(spSource.getHydrophobicity());
-                        vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
-                    }
+				for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+					SequencePosition spSource = slidingWindow.getSequence()[i];
+					Vertex vertexSource = null;
+					SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+					Vertex vertexTarget = null;
 
-                    if (i == middle) {
-                        //if source vertex == middle vertex
-                        vertexMiddle = vertexSource;
-                        spMiddle = spSource;
-                    }
+					//source
+					if (spSource == null) {
+						continue;
+					} else {
+						String sourceAa = spSource.getAminoAcid().toString().intern();
+						String sourceSse = spSource.getSecondaryStructure().toString().intern();
+						Double sourceHp = round(spSource.getHydrophobicity());
+						vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
+					}
 
-                    //target
-                    if (spTarget == null) {
-                        continue;
-                    } else {
-                        String targetAa = spTarget.getAminoAcid().toString().intern();
-                        String targetSse = spTarget.getSecondaryStructure().toString().intern();
-                        Double targetHp = round(spTarget.getHydrophobicity());
-                        vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
-                    }
+					if (i == middle) {
+						//if source vertex == middle vertex
+						vertexMiddle = vertexSource;
+						spMiddle = spSource;
+					}
 
-                    //link the source and target vertices
-                    addEdge(vertexSource, spSource, vertexTarget, spTarget, false);
+					//target
+					if (spTarget == null) {
+						continue;
+					} else {
+						String targetAa = spTarget.getAminoAcid().toString().intern();
+						String targetSse = spTarget.getSecondaryStructure().toString().intern();
+						Double targetHp = round(spTarget.getHydrophobicity());
+						vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
+					}
 
-                }
-                //link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
-                logger.trace("SequencePosition: middle " + spMiddle);
-                addEdge(vertexMiddle, spMiddle, null, null, true);
-            }
-        }
-        trained = true;
-        long end = System.currentTimeMillis();
-        logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
+					//link the source and target vertices
+					Edge added = addEdge(vertexSource, spSource, vertexTarget, spTarget, false);
+					if (added != null) {
+						windowEdgeList.add(added);
+					}
+				}
+				//link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
+				logger.trace("SequencePosition: middle " + spMiddle);
+				addEdge(vertexMiddle, spMiddle, null, null, true);
+
+//				vertexMiddle.addWindowEdge(windowEdgeList.toArray(new Edge[]{}));
+			}
+		}
+		trained = true;
+		long end = System.currentTimeMillis();
+		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
 //		Normalizer nhwto = new NormalizerHighestWeighToOne(wintermute);
 //		norm = new NormalizerSumOfWeightsToOne(wintermute);
 //		norm.compute();
 
 
-        //DEBUG
+		//DEBUG
 //        try {
 //            BufferedWriter bw = new BufferedWriter(new FileWriter(new File("MARKOV_DEBUG.txt")));
 //            for (Vertex vertex : wintermute.vertexSet()) {
@@ -493,7 +504,6 @@ public class CombinedNet extends Markov {
 //        } catch (IOException ex) {
 //            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-    }
-
-
+		pruneNotUsedVertices();
+	}
 }

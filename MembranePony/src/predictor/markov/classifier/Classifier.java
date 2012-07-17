@@ -1,4 +1,4 @@
-package predictor.markov.classificator;
+package predictor.markov.classifier;
 
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -8,9 +8,9 @@ import predictor.markov.graph.Edge;
  *
  * @author greil
  */
-public abstract class Classificator {
+public abstract class Classifier {
 
-	protected Logger logger = Logger.getLogger(Classificator.class);
+	protected Logger logger = Logger.getLogger(Classifier.class);
 	protected Double classRateTmh = Double.NaN;
 	protected Double classRateNonTmh = Double.NaN;
 	protected Double classRateComplete = Double.NaN;

@@ -1,4 +1,4 @@
-package predictor.markov.classificator;
+package predictor.markov.classifier;
 
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -9,11 +9,11 @@ import predictor.markov.graph.Edge;
  *
  * @author greil
  */
-public final class ClassificatorModBayes extends Classificator {
+public final class ClassifierModBayes extends Classifier {
 
-	public ClassificatorModBayes(List<Edge> listEdge) {
+	public ClassifierModBayes(List<Edge> listEdge) {
 		this.listEdge = listEdge;
-		logger = Logger.getLogger(ClassificatorModBayes.class);
+		logger = Logger.getLogger(ClassifierModBayes.class);
 		compute();
 	}
 

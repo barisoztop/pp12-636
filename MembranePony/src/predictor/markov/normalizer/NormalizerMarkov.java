@@ -72,8 +72,8 @@ public final class NormalizerMarkov extends Normalizer {
 
 				//set new weights
 				e.setWeightComplete(newWeightComplete);
-				e.setWeight(true, newWeightTmh);
-				e.setWeight(false, newWeightNonTmh);
+				e.setWeightTmh(newWeightTmh);
+				e.setWeightNonTmh(newWeightNonTmh);
 			}
 		}
 
