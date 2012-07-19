@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Logger;
-import predictor.markov.layout.CombinedNet;
-import predictor.markov.layout.Markov;
+import predictor.markov.layout.Base;
+import predictor.markov.layout.MultiEdgeNet;
 import predictor.mss.MssResult;
 
 /**
@@ -29,7 +29,8 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		Sequence[] seqs;
 
-		Markov m = new CombinedNet();
+		Base m = new MultiEdgeNet();
+//		Base m = new CombinedNet();
 //        Markov m = new TripleNet();
 
 		File dataFolderOld = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
@@ -54,6 +55,7 @@ public class Test {
 		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
 
+		Collections.shuffle(Arrays.asList(sequences));
 
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 		EvaluationResult result = eval.evaluate();
@@ -63,8 +65,13 @@ public class Test {
 //		int seqNumber = 23;
 //		int seqNumber = 53;
 //		int seqNumber = 43;
-//
+
+//		sequences = new Sequence[] {sequences[74]};
 //		m.train(sequences);
+//		m.save(new File("MULTIEDGE.txt"));
+//		m = new MultiEdgeNet();
+//		m.load(new File("MULTIEDGE.txt"));
+
 //		m.predict(sequences[seqNumber]);
 //		System.out.println(sequences[seqNumber].getId() + " - > is SOLUBLE " + !sequences[seqNumber].containsTransmembrane());
 //		MssMod mss = new MssMod();

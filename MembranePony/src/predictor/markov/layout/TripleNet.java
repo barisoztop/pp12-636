@@ -16,7 +16,7 @@ import java.util.List;
 import predictor.markov.classifier.Classifier;
 import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedGraph;
+import predictor.markov.graph.GraphDirected;
 import predictor.markov.graph.Vertex;
 import predictor.markov.normalizer.Normalizer;
 import predictor.markov.normalizer.NormalizerMarkov;
@@ -25,12 +25,12 @@ import predictor.markov.normalizer.NormalizerMarkov;
  *
  * @author greil
  */
-public class TripleNet extends Markov {
+public class TripleNet extends Base {
 
 	public TripleNet() {
 //		logger = Logger.getLogger(TripleNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
-		wintermute = new MarkovDirectedGraph();
+		wintermute = new GraphDirected();
 		mapVertex = new HashMap<String, Vertex>();
 	}
 
@@ -70,6 +70,125 @@ public class TripleNet extends Markov {
 
 		long end = System.currentTimeMillis();
 		logger.info("-> " + wintermute.vertexSet().size() + " vertices in " + (end - start) + " ms");
+	}
+
+	@Override
+	public void train(Sequence[] trainingCases) {
+		if (trained) {
+			throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
+		}
+		addVertices();
+		long start = System.currentTimeMillis();
+		logger.info("training " + trainingCases.length + " sequences");
+		checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
+
+
+		for (Sequence sequence : trainingCases) {
+			if (!sequence.containsTransmembrane()) {
+				continue;
+			}
+			for (SlidingWindow slidingWindow : sequence.getWindows()) {
+				int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
+				if (check == 0) {
+					windowNew = true;
+				} else {
+					windowNew = false;
+				}
+				logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
+
+				Vertex vertexMiddleAa = null;
+				Vertex vertexMiddleSse = null;
+				Vertex vertexMiddleHp = null;
+				SequencePosition spMiddle = null;
+
+				for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+					SequencePosition spSource = slidingWindow.getSequence()[i];
+					Vertex vertexSourceAa;
+					Vertex vertexSourceSse;
+					Vertex vertexSourceHp;
+
+					SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+					Vertex vertexTargetAa;
+					Vertex vertexTargetSse;
+					Vertex vertexTargetHp;
+
+					//source
+					if (spSource == null) {
+						continue;
+					} else {
+						String sourceAa = spSource.getAminoAcid().toString().intern();
+						vertexSourceAa = mapVertex.get(sourceAa + ":" + SpecialVertex.NULL + ":" + Double.NaN);
+
+						String sourceSse = spSource.getSecondaryStructure().toString().intern();
+						vertexSourceSse = mapVertex.get(SpecialVertex.NULL + ":" + sourceSse + ":" + Double.NaN);
+
+						Double sourceHp = round(spSource.getHydrophobicity());
+						vertexSourceHp = mapVertex.get(SpecialVertex.NULL + ":" + SpecialVertex.NULL + ":" + sourceHp);
+					}
+
+					if (i == Constants.WINDOW_MIDDLE_POSITION) {
+						//if source vertex == middle vertex
+						vertexMiddleAa = vertexSourceAa;
+						vertexMiddleSse = vertexSourceSse;
+						vertexMiddleHp = vertexSourceHp;
+						spMiddle = spSource;
+					}
+
+					//target
+					if (spTarget == null) {
+						continue;
+					} else {
+						String targetAa = spTarget.getAminoAcid().toString().intern();
+						vertexTargetAa = mapVertex.get(targetAa + ":" + SpecialVertex.NULL + ":" + Double.NaN);
+
+						String targetSse = spTarget.getSecondaryStructure().toString().intern();
+						vertexTargetSse = mapVertex.get(SpecialVertex.NULL + ":" + targetSse + ":" + Double.NaN);
+
+						Double targetHp = round(spTarget.getHydrophobicity());
+						vertexTargetHp = mapVertex.get(SpecialVertex.NULL + ":" + SpecialVertex.NULL + ":" + targetHp);
+					}
+
+					//link the source and target vertices
+					addEdge(vertexSourceAa, spSource, vertexTargetAa, spTarget, false, -1);
+					addEdge(vertexSourceSse, spSource, vertexTargetSse, spTarget, false, -1);
+					addEdge(vertexSourceHp, spSource, vertexTargetHp, spTarget, false, -1);
+
+				}
+				//link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
+				logger.trace("SequencePosition: middle " + spMiddle);
+				addEdge(vertexMiddleAa, spMiddle, null, null, true, Constants.WINDOW_MIDDLE_POSITION);
+				addEdge(vertexMiddleSse, spMiddle, null, null, true, Constants.WINDOW_MIDDLE_POSITION);
+				addEdge(vertexMiddleHp, spMiddle, null, null, true, Constants.WINDOW_MIDDLE_POSITION);
+			}
+		}
+		trained = true;
+		long end = System.currentTimeMillis();
+
+//						Normalizer norm = new NormalizerHighestWeightToOne(wintermute);
+//		Normalizer norm = new NormalizerMarkov(wintermute);
+
+		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
+//		Normalizer nhwto = new NormalizerHighestWeighToOne(wintermute);
+//		norm = new NormalizerSumOfWeightsToOne(wintermute);
+//		norm.compute();
+
+
+		//DEBUG
+//        try {
+//            BufferedWriter bw = new BufferedWriter(new FileWriter(new File("MARKOV_DEBUG.txt")));
+//            for (Vertex vertex : wintermute.vertexSet()) {
+//                bw.write(vertex.toString() + "\n");
+//            }
+//            bw.write("\n\n\n\n\n");
+//            for (Edge edge : wintermute.edgeSet()) {
+//                bw.write(edge.toString() + "\n");
+//            }
+//            bw.flush();
+//            bw.close();
+//        } catch (IOException ex) {
+//            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+		pruneNotUsedVertices();
 	}
 
 	@Override
@@ -123,7 +242,7 @@ public class TripleNet extends Markov {
 					vertexSourceHp = mapVertex.get(SpecialVertex.NULL + ":" + SpecialVertex.NULL + ":" + sourceHp);
 				}
 
-				if (i == middle) {
+				if (i == Constants.WINDOW_MIDDLE_POSITION) {
 					//if source vertex == middle vertex
 					vertexMiddleAa = vertexSourceAa;
 					vertexMiddleSse = vertexSourceSse;
@@ -446,124 +565,5 @@ public class TripleNet extends Markov {
 			logger.trace("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
 		}
 		return new GenericPrediction(sequence, predictions);
-	}
-
-	@Override
-	public void train(Sequence[] trainingCases) {
-		if (trained) {
-			throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
-		}
-		addVertices();
-		long start = System.currentTimeMillis();
-		logger.info("training " + trainingCases.length + " sequences");
-		checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
-
-
-		for (Sequence sequence : trainingCases) {
-			if (!sequence.containsTransmembrane()) {
-				continue;
-			}
-			for (SlidingWindow slidingWindow : sequence.getWindows()) {
-				int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
-				if (check == 0) {
-					windowNew = true;
-				} else {
-					windowNew = false;
-				}
-				logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
-
-				Vertex vertexMiddleAa = null;
-				Vertex vertexMiddleSse = null;
-				Vertex vertexMiddleHp = null;
-				SequencePosition spMiddle = null;
-
-				for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
-					SequencePosition spSource = slidingWindow.getSequence()[i];
-					Vertex vertexSourceAa;
-					Vertex vertexSourceSse;
-					Vertex vertexSourceHp;
-
-					SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
-					Vertex vertexTargetAa;
-					Vertex vertexTargetSse;
-					Vertex vertexTargetHp;
-
-					//source
-					if (spSource == null) {
-						continue;
-					} else {
-						String sourceAa = spSource.getAminoAcid().toString().intern();
-						vertexSourceAa = mapVertex.get(sourceAa + ":" + SpecialVertex.NULL + ":" + Double.NaN);
-
-						String sourceSse = spSource.getSecondaryStructure().toString().intern();
-						vertexSourceSse = mapVertex.get(SpecialVertex.NULL + ":" + sourceSse + ":" + Double.NaN);
-
-						Double sourceHp = round(spSource.getHydrophobicity());
-						vertexSourceHp = mapVertex.get(SpecialVertex.NULL + ":" + SpecialVertex.NULL + ":" + sourceHp);
-					}
-
-					if (i == middle) {
-						//if source vertex == middle vertex
-						vertexMiddleAa = vertexSourceAa;
-						vertexMiddleSse = vertexSourceSse;
-						vertexMiddleHp = vertexSourceHp;
-						spMiddle = spSource;
-					}
-
-					//target
-					if (spTarget == null) {
-						continue;
-					} else {
-						String targetAa = spTarget.getAminoAcid().toString().intern();
-						vertexTargetAa = mapVertex.get(targetAa + ":" + SpecialVertex.NULL + ":" + Double.NaN);
-
-						String targetSse = spTarget.getSecondaryStructure().toString().intern();
-						vertexTargetSse = mapVertex.get(SpecialVertex.NULL + ":" + targetSse + ":" + Double.NaN);
-
-						Double targetHp = round(spTarget.getHydrophobicity());
-						vertexTargetHp = mapVertex.get(SpecialVertex.NULL + ":" + SpecialVertex.NULL + ":" + targetHp);
-					}
-
-					//link the source and target vertices
-					addEdge(vertexSourceAa, spSource, vertexTargetAa, spTarget, false);
-					addEdge(vertexSourceSse, spSource, vertexTargetSse, spTarget, false);
-					addEdge(vertexSourceHp, spSource, vertexTargetHp, spTarget, false);
-
-				}
-				//link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
-				logger.trace("SequencePosition: middle " + spMiddle);
-				addEdge(vertexMiddleAa, spMiddle, null, null, true);
-				addEdge(vertexMiddleSse, spMiddle, null, null, true);
-				addEdge(vertexMiddleHp, spMiddle, null, null, true);
-			}
-		}
-		trained = true;
-		long end = System.currentTimeMillis();
-
-//						Normalizer norm = new NormalizerHighestWeightToOne(wintermute);
-//		Normalizer norm = new NormalizerMarkov(wintermute);
-
-		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
-//		Normalizer nhwto = new NormalizerHighestWeighToOne(wintermute);
-//		norm = new NormalizerSumOfWeightsToOne(wintermute);
-//		norm.compute();
-
-
-		//DEBUG
-//        try {
-//            BufferedWriter bw = new BufferedWriter(new FileWriter(new File("MARKOV_DEBUG.txt")));
-//            for (Vertex vertex : wintermute.vertexSet()) {
-//                bw.write(vertex.toString() + "\n");
-//            }
-//            bw.write("\n\n\n\n\n");
-//            for (Edge edge : wintermute.edgeSet()) {
-//                bw.write(edge.toString() + "\n");
-//            }
-//            bw.flush();
-//            bw.close();
-//        } catch (IOException ex) {
-//            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-		pruneNotUsedVertices();
 	}
 }

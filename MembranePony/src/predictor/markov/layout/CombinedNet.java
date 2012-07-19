@@ -19,21 +19,18 @@ import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.classifier.ClassifierModBayes;
 import predictor.markov.classifier.ClassifierRatio;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedGraph;
+import predictor.markov.graph.GraphDirected;
 import predictor.markov.graph.Vertex;
-import predictor.markov.normalizer.Normalizer;
-import predictor.markov.normalizer.NormalizerMaxWeightToOne;
-import predictor.markov.normalizer.NormalizerMarkov;
 
 /*
  * @author rgreil
  */
-public class CombinedNet extends Markov {
+public class CombinedNet extends Base {
 
 	public CombinedNet() {
 		logger = Logger.getLogger(CombinedNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
-		wintermute = new MarkovDirectedGraph();
+		wintermute = new GraphDirected();
 		mapVertex = new HashMap<String, Vertex>();
 	}
 
@@ -66,22 +63,88 @@ public class CombinedNet extends Markov {
 	}
 
 	@Override
+	public void train(Sequence[] trainingCases) {
+		long start = System.currentTimeMillis();
+		if (trained) {
+			throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
+		}
+		addVertices();
+		logger.info("training " + trainingCases.length + " sequences");
+		checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
+
+
+		for (Sequence sequence : trainingCases) {
+			if (!sequence.containsTransmembrane()) {
+				continue;
+			}
+			for (SlidingWindow slidingWindow : sequence.getWindows()) {
+				int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
+				if (check == 0) {
+					windowNew = true;
+				} else {
+					windowNew = false;
+				}
+				logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
+
+				Vertex vertexMiddle = null;
+				SequencePosition spMiddle = null;
+
+				for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
+					SequencePosition spSource = slidingWindow.getSequence()[i];
+					Vertex vertexSource = null;
+					SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
+					Vertex vertexTarget = null;
+
+					//source
+					if (spSource == null) {
+						continue;
+					} else {
+						String sourceAa = spSource.getAminoAcid().toString().intern();
+						String sourceSse = spSource.getSecondaryStructure().toString().intern();
+						Double sourceHp = round(spSource.getHydrophobicity());
+						vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
+					}
+
+					if (i == Constants.WINDOW_MIDDLE_POSITION) {
+						//if source vertex == middle vertex
+						vertexMiddle = vertexSource;
+						spMiddle = spSource;
+					}
+
+					//target
+					if (spTarget == null) {
+						continue;
+					} else {
+						String targetAa = spTarget.getAminoAcid().toString().intern();
+						String targetSse = spTarget.getSecondaryStructure().toString().intern();
+						Double targetHp = round(spTarget.getHydrophobicity());
+						vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
+					}
+
+					//link the source and target vertices
+					addEdge(vertexSource, spSource, vertexTarget, spTarget, false, -1);
+				}
+				//link the middle node to the RealClass (TMH, NON_TMH)
+				logger.trace("SequencePosition: middle " + spMiddle);
+				addEdge(vertexMiddle, spMiddle, null, null, true, Constants.WINDOW_MIDDLE_POSITION);
+
+			}
+		}
+		trained = true;
+		long end = System.currentTimeMillis();
+		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
+
+		pruneNotUsedVertices();
+		addFinalMissingNullEdges();
+	}
+
+	@Override
 	public Prediction predict(Sequence sequence) {
 		if (!trained) {
 			throw new VerifyError("Can not predict with an empty model! Train it before!");
 		}
 		checkScale(sequence.getSequence()[0].getHydrophobicityMatrix());
 		List<Result> pred = new ArrayList<Result>();
-
-		//debug
-//		List<Double> predTmh = new ArrayList<Double>();
-//		List<Double> predNonTmh = new ArrayList<Double>();
-//		double minTmh = Double.MAX_VALUE;
-//		double minNonTmh = Double.MAX_VALUE;
-//		double maxTmh = Double.MIN_VALUE;
-//		double maxNonTmh = Double.MAX_VALUE;
-		List<Result> predWithExtraWeighting = new ArrayList<Result>();
-
 		List<Result> real = new ArrayList<Result>();
 		for (SequencePosition seas : sequence.getSequence()) {
 			real.add(seas.getRealClass());
@@ -117,7 +180,7 @@ public class CombinedNet extends Markov {
 					vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
 				}
 
-				if (i == middle) {
+				if (i == Constants.WINDOW_MIDDLE_POSITION) {
 					vertexMiddle = vertexSource;
 					spMiddle = spSource;
 				}
@@ -167,22 +230,39 @@ public class CombinedNet extends Markov {
 
 			Classifier crbTmh = new ClassifierBayes(listWindowClonedEdgesTmh);
 			Classifier crbNonTmh = new ClassifierBayes(listWindowClonedEdgesNonTmh);
-			Classifier crmbTmh = new ClassifierModBayes(listWindowClonedEdgesTmh);
-			Classifier crmbNonTmh = new ClassifierModBayes(listWindowClonedEdgesNonTmh);
-			Classifier crrTmh = new ClassifierRatio(listWindowClonedEdgesTmh);
-			Classifier crrNonTmh = new ClassifierRatio(listWindowClonedEdgesNonTmh);
+			Classifier cModBayesTmh = new ClassifierModBayes(listWindowClonedEdgesTmh);
+			Classifier cModBayesNonTmh = new ClassifierModBayes(listWindowClonedEdgesNonTmh);
+			Classifier cRatioTmh = new ClassifierRatio(listWindowClonedEdgesTmh);
+			Classifier cRatioNonTmh = new ClassifierRatio(listWindowClonedEdgesNonTmh);
 
-			double weightTmh = crmbTmh.getClassRateTmh() * crrTmh.getClassRateTmh();
-			double weightNonTmh = crmbNonTmh.getClassRateNonTmh() * crrNonTmh.getClassRateNonTmh();
+			double weightTmh = cModBayesTmh.getClassRateTmh() * cRatioTmh.getClassRateTmh();
+			double weightNonTmh = cModBayesNonTmh.getClassRateNonTmh() * cRatioNonTmh.getClassRateNonTmh();
 
-				System.out.println("BAYES-TMH: COMPLETE: "+crbTmh.getClassRateComplete());
-				System.out.println("BAYES-TMH: TMH: "+crbTmh.getClassRateTmh());
-				System.out.println("BAYES-TMH: NON_TMH: "+crbTmh.getClassRateNonTmh());
-				System.out.println("BAYES-NON_TMH: COMPLETE: "+crbNonTmh.getClassRateComplete());
-				System.out.println("BAYES-NON_TMH: TMH: "+crbNonTmh.getClassRateTmh());
-				System.out.println("BAYES-NON_TMH: NON_TMH: "+crbNonTmh.getClassRateNonTmh());
+//			System.out.println("BAYES-TMH: COMPLETE: " + crbTmh.getClassRateComplete());
+//			System.out.println("BAYES-TMH: TMH: " + crbTmh.getClassRateTmh());
+//			System.out.println("BAYES-TMH: NON_TMH: " + crbTmh.getClassRateNonTmh());
+//			System.out.println("BAYES-NON_TMH: COMPLETE: " + crbNonTmh.getClassRateComplete());
+//			System.out.println("BAYES-NON_TMH: TMH: " + crbNonTmh.getClassRateTmh());
+//			System.out.println("BAYES-NON_TMH: NON_TMH: " + crbNonTmh.getClassRateNonTmh());
 
-				System.exit(1);
+//			System.out.println("TMH");
+//			System.out.println("weightTmh: "+weightTmh);
+//			System.out.println("cModBayesTmh.getClassRateTmh(): "+cModBayesTmh.getClassRateTmh());
+//			System.out.println("cRatioTmh.getClassRateTmh(): "+cRatioTmh.getClassRateTmh());
+//			for (Edge edge : listWindowClonedEdgesTmh) {
+//				System.out.println("\t"+edge);
+//			}
+//
+//			System.out.println("NON_TMH");
+//			System.out.println("weightNonTmh: "+weightNonTmh);
+//			System.out.println("cModBayesTmh.getClassRateNonTmh(): "+cModBayesNonTmh.getClassRateNonTmh());
+//			System.out.println("cRatioNonTmh.getClassRateNonTmh(): "+cRatioNonTmh.getClassRateNonTmh());
+//			for (Edge edge : listWindowClonedEdgesNonTmh) {
+//				System.out.println("\t"+edge);
+//			}
+
+
+
 
 //				//old & not so good, do not use!
 //			Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
@@ -236,92 +316,8 @@ public class CombinedNet extends Markov {
 
 		predictions = pred.toArray(predictions);
 		if (counterFalsePredicted != 0) {
-			logger.trace("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
+			logger.info("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
 		}
 		return new GenericPrediction(sequence, predictions);
-	}
-
-	@Override
-	public void train(Sequence[] trainingCases) {
-		long start = System.currentTimeMillis();
-		if (trained) {
-			throw new VerifyError("Model can not be overtrained! Create new empty Instance!");
-		}
-		addVertices();
-		logger.info("training " + trainingCases.length + " sequences");
-		checkScale(trainingCases[0].getSequence()[0].getHydrophobicityMatrix());
-
-
-		for (Sequence sequence : trainingCases) {
-			if (!sequence.containsTransmembrane()) {
-				continue;
-			}
-			for (SlidingWindow slidingWindow : sequence.getWindows()) {
-				int check = slidingWindow.getWindowIndex() % (Constants.WINDOW_LENGTH - 1);
-				if (check == 0) {
-					windowNew = true;
-				} else {
-					windowNew = false;
-				}
-				logger.trace("slidingWindowIndex: " + slidingWindow.getWindowIndex() + " -> newWindow:" + windowNew + " (check value: " + check + ") --> " + Arrays.toString(slidingWindow.getSequence()));
-
-				Vertex vertexMiddle = null;
-				SequencePosition spMiddle = null;
-
-				List<Edge> windowEdgeList = new ArrayList<Edge>();
-
-				for (int i = 0; i < slidingWindow.getSequence().length - 1; i++) {
-					SequencePosition spSource = slidingWindow.getSequence()[i];
-					Vertex vertexSource = null;
-					SequencePosition spTarget = slidingWindow.getSequence()[i + 1];
-					Vertex vertexTarget = null;
-
-					//source
-					if (spSource == null) {
-						continue;
-					} else {
-						String sourceAa = spSource.getAminoAcid().toString().intern();
-						String sourceSse = spSource.getSecondaryStructure().toString().intern();
-						Double sourceHp = round(spSource.getHydrophobicity());
-						vertexSource = mapVertex.get(sourceAa + ":" + sourceSse + ":" + sourceHp);
-					}
-
-					if (i == middle) {
-						//if source vertex == middle vertex
-						vertexMiddle = vertexSource;
-						spMiddle = spSource;
-					}
-
-					//target
-					if (spTarget == null) {
-						continue;
-					} else {
-						String targetAa = spTarget.getAminoAcid().toString().intern();
-						String targetSse = spTarget.getSecondaryStructure().toString().intern();
-						Double targetHp = round(spTarget.getHydrophobicity());
-						vertexTarget = mapVertex.get(targetAa + ":" + targetSse + ":" + targetHp);
-					}
-
-					//link the source and target vertices
-					Edge added = addEdge(vertexSource, spSource, vertexTarget, spTarget, false);
-					if (added != null) {
-						windowEdgeList.add(added);
-					}
-				}
-				//link the middle node to the RealClass (TMH, NON_TMH)
-				logger.trace("SequencePosition: middle " + spMiddle);
-				addEdge(vertexMiddle, spMiddle, null, null, true);
-
-//				vertexMiddle.addWindowEdge(windowEdgeList.toArray(new Edge[]{}));
-			}
-		}
-		trained = true;
-		long end = System.currentTimeMillis();
-		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
-		Normalizer normalizer = new NormalizerMarkov(wintermute);
-//		Normalizer normalizer = new NormalizerMaxWeightToOne(wintermute);
-
-		pruneNotUsedVertices();
-		addFinalMissingNullEdges();
 	}
 }

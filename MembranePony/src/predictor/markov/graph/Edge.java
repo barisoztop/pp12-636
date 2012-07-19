@@ -1,21 +1,26 @@
 package predictor.markov.graph;
 
-import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.DefaultEdge;
 
 /**
  * simple class for representing a markovedge
  *
  * @author rgreil
  */
-public class Edge extends DefaultWeightedEdge {
+public class Edge extends DefaultEdge {
 
 	private double weightTmh = 0d;
 	private double weightNonTmh = 0d;
 	private double weightComplete = 0d;
+	private int windowPos = -1;
 
 	@Override
 	public String toString() {
-		return "(" + getSource() + " : " + getTarget() + ")_w:" + getWeightComplete() + "_tmh:" + getWeightTmh() + "_nontmh:" + getWeightNonTmh();
+		return "(" + getSource() + " : " + getTarget() + ")"
+						+ "_w:" + getWeightComplete()
+						+ "_tmh:" + getWeightTmh()
+						+ "_nontmh:" + getWeightNonTmh()
+						+ "_wp:" + getWindowPos();
 	}
 
 	public double getWeightTmh() {
@@ -40,6 +45,14 @@ public class Edge extends DefaultWeightedEdge {
 
 	public void setWeightNonTmh(double d) {
 		weightNonTmh = d;
+	}
+
+	public void setWindowPos(int pos) {
+		windowPos = pos;
+	}
+
+	public int getWindowPos() {
+		return windowPos;
 	}
 
 	@Override

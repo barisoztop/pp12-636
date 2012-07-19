@@ -3,11 +3,9 @@ package predictor.markov.normalizer;
 import data.Constants;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.apache.log4j.Logger;
-import org.jgrapht.alg.DirectedNeighborIndex;
+import org.jgrapht.graph.AbstractBaseGraph;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 
 /**
@@ -18,7 +16,7 @@ import predictor.markov.graph.Vertex;
  */
 public final class NormalizerMarkov extends Normalizer {
 
-	public NormalizerMarkov(MarkovDirectedGraph graph) {
+	public NormalizerMarkov(AbstractBaseGraph<Vertex, Edge> graph) {
 		long start = System.currentTimeMillis();
 		this.graph = graph;
 //		neighbor = new DirectedNeighborIndex(this.graph);

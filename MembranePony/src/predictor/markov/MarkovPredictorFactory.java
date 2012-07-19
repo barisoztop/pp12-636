@@ -2,8 +2,8 @@ package predictor.markov;
 
 import interfaces.Predictor;
 import interfaces.PredictorFactory;
-import predictor.markov.layout.CombinedNet;
-import predictor.markov.layout.Markov;
+import predictor.markov.layout.Base;
+import predictor.markov.layout.MultiEdgeNet;
 
 /**
  * predictor factory for markov predictor. everyone except robert should use
@@ -18,7 +18,8 @@ public class MarkovPredictorFactory implements PredictorFactory {
 
     @Override
     public Predictor getInstance() {
-        Markov mareike = new CombinedNet();
+//        Base mareike = new CombinedNet();
+        Base mareike = new MultiEdgeNet();
 //        Markov mareike = new TripleNet();
 
         if (range != null) {
