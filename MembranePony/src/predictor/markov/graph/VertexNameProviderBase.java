@@ -6,7 +6,7 @@ import org.jgrapht.ext.VertexNameProvider;
  *
  * @author rgreil
  */
-public class MarkovVertexNameProvider implements VertexNameProvider<Vertex> {
+public class VertexNameProviderBase implements VertexNameProvider<Vertex> {
 
     @Override
     public String getVertexName(Vertex vertex) {

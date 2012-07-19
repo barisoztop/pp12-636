@@ -8,18 +8,21 @@ import org.jgrapht.ext.EdgeNameProvider;
  *
  * @author rgreil
  */
-public class MarkovEdgeNameProvider implements EdgeNameProvider<Edge>{
+public class EdgeNameProviderBase implements EdgeNameProvider<Edge> {
+
 	private NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
 
-	public MarkovEdgeNameProvider() {
+	public EdgeNameProviderBase() {
 		nf.setMinimumFractionDigits(0);
 		nf.setMinimumIntegerDigits(1);
 		nf.setGroupingUsed(false);
 	}
 
-    @Override
-    public String getEdgeName(Edge edge) {
-        return nf.format(edge.getWeightComplete())+":"+nf.format(edge.getWeightTmh())+":"+nf.format(edge.getWeightNonTmh());
-    }
-
+	@Override
+	public String getEdgeName(Edge edge) {
+		return nf.format(edge.getWeightComplete())
+						+ ":" + nf.format(edge.getWeightTmh())
+						+ ":" + nf.format(edge.getWeightNonTmh())
+						+ ":" + edge.getWindowPos();
+	}
 }

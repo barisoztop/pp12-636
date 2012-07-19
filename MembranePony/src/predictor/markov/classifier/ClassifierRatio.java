@@ -21,12 +21,12 @@ public final class ClassifierRatio extends Classifier {
 	protected void compute() {
 		long start = System.currentTimeMillis();
 
-//		double weightSumRatioTmh = 0d;
-//		double weightSumRatioNonTmh = 0d;
-//		double weightSumRatioComplete = 0d;
-		double weightSumRatioTmh = 1d;
-		double weightSumRatioNonTmh = 1d;
-		double weightSumRatioComplete = 1d;
+		double weightSumRatioTmh = 0d;
+		double weightSumRatioNonTmh = 0d;
+		double weightSumRatioComplete = 0d;
+//		double weightSumRatioTmh = 1d;
+//		double weightSumRatioNonTmh = 1d;
+//		double weightSumRatioComplete = 1d;
 
 		for (Edge edge : listEdge) {
 			if (edge == null) {
@@ -35,12 +35,12 @@ public final class ClassifierRatio extends Classifier {
 			double complete = edge.getWeightComplete();
 			double tmh = edge.getWeightTmh();
 			double nonTmh = edge.getWeightNonTmh();
-//			weightSumRatioTmh += (tmh / complete);
-//			weightSumRatioNonTmh += (nonTmh / complete);
-//			weightSumRatioComplete = 1d;
-			weightSumRatioTmh *= (tmh / complete);
-			weightSumRatioNonTmh *= (nonTmh / complete);
-			weightSumRatioComplete *= 1d;;
+			weightSumRatioTmh += (tmh / complete);
+			weightSumRatioNonTmh += (nonTmh / complete);
+			weightSumRatioComplete = 1d;
+//			weightSumRatioTmh *= (tmh / complete);
+//			weightSumRatioNonTmh *= (nonTmh / complete);
+//			weightSumRatioComplete *= 1d;;
 		}
 
 		classRateTmh = weightSumRatioTmh;

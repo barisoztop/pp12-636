@@ -36,7 +36,7 @@ public class Evaluation {
 	public EvaluationResult evaluate() {
 		EvaluationRun[] runs = new EvaluationRun[countRuns];
 
-		stratifySequences();
+//		stratifySequences();
 
 		for (int i = 0; i < countRuns; i++) {
 			Predictor priscilla = factory.getInstance();
