@@ -19,7 +19,7 @@ import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.classifier.ClassifierModBayes;
 import predictor.markov.classifier.ClassifierRatio;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 import predictor.markov.normalizer.Normalizer;
 import predictor.markov.normalizer.NormalizerMaxWeightToOne;
@@ -33,7 +33,7 @@ public class CombinedNet extends Markov {
 	public CombinedNet() {
 		logger = Logger.getLogger(CombinedNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
-		wintermute = new MarkovDirectedWeightedGraph();
+		wintermute = new MarkovDirectedGraph();
 		mapVertex = new HashMap<String, Vertex>();
 	}
 

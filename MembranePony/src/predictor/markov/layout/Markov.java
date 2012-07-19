@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.jgrapht.ext.GraphMLExporter;
 import predictor.markov.graph.Edge;
 import predictor.markov.graph.GraphXmlHandler;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.MarkovEdgeNameProvider;
 import predictor.markov.graph.MarkovVertexNameProvider;
 import predictor.markov.graph.Vertex;
@@ -37,7 +37,7 @@ public abstract class Markov implements Predictor {
 
 	protected static Logger logger = Logger.getLogger(Markov.class);
 	protected Map<String, Vertex> mapVertex;
-	protected MarkovDirectedWeightedGraph wintermute;
+	protected MarkovDirectedGraph wintermute;
 	protected Normalizer norm;
 	protected double hpSteppingValue = 0.1d;
 	protected double hpRoundingValue = 10d;
@@ -384,7 +384,7 @@ public abstract class Markov implements Predictor {
 		return hpSteppingValue;
 	}
 
-	public final MarkovDirectedWeightedGraph getGraph() {
+	public final MarkovDirectedGraph getGraph() {
 		return wintermute;
 	}
 

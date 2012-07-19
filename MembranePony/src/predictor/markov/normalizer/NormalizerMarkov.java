@@ -7,7 +7,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 
 /**
@@ -18,7 +18,7 @@ import predictor.markov.graph.Vertex;
  */
 public final class NormalizerMarkov extends Normalizer {
 
-	public NormalizerMarkov(MarkovDirectedWeightedGraph graph) {
+	public NormalizerMarkov(MarkovDirectedGraph graph) {
 		long start = System.currentTimeMillis();
 		this.graph = graph;
 //		neighbor = new DirectedNeighborIndex(this.graph);

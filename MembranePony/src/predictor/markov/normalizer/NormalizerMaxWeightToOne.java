@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 
 /**
@@ -16,7 +16,7 @@ import predictor.markov.graph.Vertex;
  */
 public final class NormalizerMaxWeightToOne extends Normalizer {
 
-	public NormalizerMaxWeightToOne(MarkovDirectedWeightedGraph graph) {
+	public NormalizerMaxWeightToOne(MarkovDirectedGraph graph) {
 		long start = System.currentTimeMillis();
 		this.graph = graph;
 //		neighbor = new DirectedNeighborIndex(this.graph);

@@ -1,8 +1,8 @@
 package predictor.markov.graph;
 
-import org.jgrapht.EdgeFactory;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
-import org.jgrapht.graph.DefaultDirectedWeightedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DirectedMultigraph;
 
 /**
  * class for represeting a markov graph (DefaultDirectedWeightedGraph)<br> A
@@ -12,9 +12,9 @@ import org.jgrapht.graph.DefaultDirectedWeightedGraph;
  *
  * @author rgreil
  */
-public class MarkovDirectedWeightedGraph extends DefaultDirectedWeightedGraph<Vertex, Edge> {
+public class MarkovDirectedMultigraph extends DirectedMultigraph<Vertex, Edge> {
 
-		public MarkovDirectedWeightedGraph() {
+		public MarkovDirectedMultigraph() {
 		super(new ClassBasedEdgeFactory(Edge.class));
 	}
 
