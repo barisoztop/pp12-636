@@ -5,6 +5,8 @@
 package predictor.markov;
 
 import data.Hydrophobicity;
+import evaluation.Evaluation;
+import evaluation.EvaluationResult;
 import input.DataReader;
 import interfaces.Sequence;
 import java.io.File;
@@ -14,7 +16,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import predictor.markov.layout.CombinedNet;
 import predictor.markov.layout.Markov;
-import predictor.mss.MssMod;
 import predictor.mss.MssResult;
 
 /**
@@ -54,34 +55,39 @@ public class Test {
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
 
 
-//		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
-//		EvaluationResult result = eval.evaluate();
-//		System.out.println(result);
+		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
+		EvaluationResult result = eval.evaluate();
+		System.out.println(result);
 
-		int seqNumber = 50;
+//		int seqNumber = 74;
+//		int seqNumber = 23;
+//		int seqNumber = 53;
+//		int seqNumber = 43;
+//
+//		m.train(sequences);
+//		m.predict(sequences[seqNumber]);
+//		System.out.println(sequences[seqNumber].getId() + " - > is SOLUBLE " + !sequences[seqNumber].containsTransmembrane());
+//		MssMod mss = new MssMod();
+//		int length = sequences[seqNumber].length();
+//		List<MssResult> al = mss.mss(sequences[seqNumber], 1);
+//		List<MssResult> al2 = mss.mss(sequences[seqNumber], 2);
+//		List<MssResult> al3 = mss.mss(sequences[seqNumber], 3);
+//		List<MssResult> al4 = mss.mss(sequences[seqNumber], 4);
+//		List<MssResult> al5 = mss.mss(sequences[seqNumber], 5);
+//		mergeMss(al, 1, length);
+//		mergeMss(al2, 2, length);
+//		mergeMss(al3, 3, length);
+//		mergeMss(al4, 4, length);
+//		mergeMss(al5, 5, length);
 
-		m.train(sequences);
-		m.predict(sequences[seqNumber]);
-		System.out.println(sequences[seqNumber].getId()+" - > is SOLUBLE "+!sequences[seqNumber].containsTransmembrane());
-		MssMod mss = new MssMod();
-		List<MssResult> al = mss.mss(sequences[seqNumber], 2);
-		String[] mssMerged = new String[sequences[seqNumber].length()];
+//		for (Vertex vertex : m.getGraph().vertexSet()) {
+//			System.out.println(vertex+" -> edges (out): "+m.getGraph().outDegreeOf(vertex)+" | in: "+m.getGraph().inDegreeOf(vertex));
+//			for (Edge e : m.getGraph().outgoingEdgesOf(vertex)) {
+//				System.out.println("\t"+e);
+//			}
+//		}
 
-		System.out.print("MSSm:\t");
-		for (MssResult mssResult : al) {
-			for (int i = mssResult.getPositionStart(); i <= mssResult.getPositionEnd(); i++) {
-				mssMerged[i] = "!";
-			}
-		}
-		for (String string : mssMerged) {
-			if (string == null) {
-				System.out.print("_");
-			} else {
-				System.out.print(string);
-			}
-		}
 
-			System.out.println("");
 
 
 
@@ -129,8 +135,23 @@ public class Test {
 ////        m = new Markov();
 ////        m.load(new File("markov.graph"));
 ////        m.save(new File("markov_NEW.graph"));
+	}
+
+	public static void mergeMss(List<MssResult> al, int dist, int length) {
+		System.out.print("MSS"+dist+":\t");
+		String[] mssMerged = new String[length];
+
+		for (MssResult mssResult : al) {
+			for (int i = mssResult.getPositionStart(); i <= mssResult.getPositionEnd(); i++) {
+				mssMerged[i] = "!";
+			}
 		}
-
-
-
+		for (String string : mssMerged) {
+			if (string == null) {
+				System.out.print(".");
+			} else {
+				System.out.print(string);
+			}
+		}
+	}
 }

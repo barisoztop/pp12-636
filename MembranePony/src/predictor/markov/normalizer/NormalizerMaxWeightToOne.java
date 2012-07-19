@@ -3,26 +3,24 @@ package predictor.markov.normalizer;
 import data.Constants;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.apache.log4j.Logger;
-import org.jgrapht.alg.DirectedNeighborIndex;
 import predictor.markov.graph.Edge;
 import predictor.markov.graph.MarkovDirectedWeightedGraph;
 import predictor.markov.graph.Vertex;
 
 /**
- * normalizes all weights of all outgoing edges to be in sum 1<br> sets edges
- * without weight to smalles weight found
+ * normalizes all weights of all outgoing edges to be in accordance to weight
+ * with highes value<br> sets edges without weight to smalles weight found
  *
  * @author rgreil
  */
-public final class NormalizerMarkov extends Normalizer {
+public final class NormalizerMaxWeightToOne extends Normalizer {
 
-	public NormalizerMarkov(MarkovDirectedWeightedGraph graph) {
+	public NormalizerMaxWeightToOne(MarkovDirectedWeightedGraph graph) {
 		long start = System.currentTimeMillis();
 		this.graph = graph;
 //		neighbor = new DirectedNeighborIndex(this.graph);
-		logger = Logger.getLogger(NormalizerMarkov.class);
+		logger = Logger.getLogger(NormalizerMaxWeightToOne.class);
 		for (Vertex source : graph.vertexSet()) {
 			List<Edge> outgoingEdges = new ArrayList(graph.outgoingEdgesOf(source));
 			List<Edge> listNormalEdge = new ArrayList<Edge>();
@@ -45,15 +43,18 @@ public final class NormalizerMarkov extends Normalizer {
 
 	@Override
 	protected void compute(List<Edge> list) {
-		double sumWeightComplete = 0d;
-		double sumWeightTmh = 0d;
-		double sumWeightNonTmh = 0d;
+//		double sumWeightComplete = 0d;
+//		double sumWeightTmh = 0d;
+//		double sumWeightNonTmh = 0d;
 		double minWeightComplete = Double.MAX_VALUE;
 		double minWeightTmh = Double.MAX_VALUE;
 		double minWeightNonTmh = Double.MAX_VALUE;
 		double countNullComplete = 0d;
 		double countNullTmh = 0d;
 		double countNullNonTmh = 0d;
+		double maxWeightComplete = Double.MIN_VALUE;
+		double maxWeightTmh = Double.MIN_VALUE;
+		double maxWeightNonTmh = Double.MIN_VALUE;
 
 		for (Edge e : list) {
 			//sum complete
@@ -65,7 +66,9 @@ public final class NormalizerMarkov extends Normalizer {
 				if (weightComplete < minWeightComplete) {
 					minWeightComplete = weightComplete;
 				}
-				sumWeightComplete += weightComplete;
+				if (weightComplete > maxWeightComplete) {
+					maxWeightComplete = weightComplete;
+				}
 			}
 
 			//sum tmh
@@ -77,8 +80,11 @@ public final class NormalizerMarkov extends Normalizer {
 				if (weightTmh < minWeightTmh) {
 					minWeightTmh = weightTmh;
 				}
-				sumWeightTmh += weightTmh;
+				if (weightTmh > maxWeightTmh) {
+					maxWeightTmh = weightTmh;
+				}
 			}
+
 			//sum nonTmh
 			double weightNonTmh = e.getWeightNonTmh();
 			if (weightNonTmh == 0) {
@@ -88,7 +94,9 @@ public final class NormalizerMarkov extends Normalizer {
 				if (weightNonTmh < minWeightNonTmh) {
 					minWeightNonTmh = weightNonTmh;
 				}
-				sumWeightNonTmh += weightNonTmh;
+				if (weightNonTmh > maxWeightNonTmh) {
+					maxWeightNonTmh = weightNonTmh;
+				}
 			}
 		}
 
@@ -108,37 +116,37 @@ public final class NormalizerMarkov extends Normalizer {
 			//new complete
 			double newWeightComplete = e.getWeightComplete();
 			if (newWeightComplete == 0d) {
-				if (sumWeightComplete == 0d) {
+				if (maxWeightComplete == 0d) {
 					newWeightComplete = minWeightComplete * (1d / countNullComplete);
 				} else {
-					newWeightComplete = (minWeightComplete / Math.pow(sumWeightComplete, 2)) * (1d / countNullComplete);
+					newWeightComplete = (minWeightComplete / Math.pow(maxWeightComplete, 2)) * (1d / countNullComplete);
 				}
 			} else {
-				newWeightComplete /= sumWeightComplete;
+				newWeightComplete /= maxWeightComplete;
 			}
 
 			//new tmh
 			double newWeightTmh = e.getWeightTmh();
 			if (newWeightTmh == 0d) {
-				if (sumWeightTmh == 0d) {
+				if (maxWeightTmh == 0d) {
 					newWeightTmh = minWeightTmh * (1d / countNullTmh);
 				} else {
-					newWeightTmh = (minWeightTmh / Math.pow(sumWeightTmh, 2)) * (1d / countNullTmh);
+					newWeightTmh = (minWeightTmh / Math.pow(maxWeightTmh, 2)) * (1d / countNullTmh);
 				}
 			} else {
-				newWeightTmh /= sumWeightTmh;
+				newWeightTmh /= maxWeightTmh;
 			}
 
 			//new nonTmh
 			double newWeightNonTmh = e.getWeightNonTmh();
 			if (newWeightNonTmh == 0d) {
-				if (sumWeightNonTmh == 0d) {
+				if (maxWeightNonTmh == 0d) {
 					newWeightNonTmh = minWeightNonTmh * (1d / countNullNonTmh);
 				} else {
-					newWeightNonTmh = (minWeightNonTmh / Math.pow(sumWeightNonTmh, 2)) * (1d / countNullNonTmh);
+					newWeightNonTmh = (minWeightNonTmh / Math.pow(maxWeightNonTmh, 2)) * (1d / countNullNonTmh);
 				}
 			} else {
-				newWeightNonTmh /= sumWeightNonTmh;
+				newWeightNonTmh /= maxWeightNonTmh;
 			}
 
 			//set new weights

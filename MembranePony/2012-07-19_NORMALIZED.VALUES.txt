@@ -1,0 +1,27 @@
+NORMALIZED VALUES (MARKOV NORMALIZER) (OLD METHOD, without NAIVE BAYES)
+Transmembrane
+Overall statistics: (NEW, included TMH/NON_TMH in windowEdge)
+  TMH     => Stats [ tp=2173 tn=12289 fp=706 fn=3652 recall=0.373 precision=0.755 specificity=0.946 f-measure=0.499 accuracy=0.768 error_rate=0.232 ]
+  Non-TMH => Stats [ tp=12289 tn=2173 fp=3652 fn=706 recall=0.946 precision=0.771 specificity=0.373 f-measure=0.849 accuracy=0.768 error_rate=0.232 ]
+  Outside => Stats [ tp=0 tn=18820 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  Inside  => Stats [ tp=0 tn=18820 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  
+Overall statistics: (OLD, excluded TMH/NON_TMH in windowEdge)
+  TMH     => Stats [ tp=2150 tn=12329 fp=666 fn=3675 recall=0.369 precision=0.763 specificity=0.949 f-measure=0.498 accuracy=0.769 error_rate=0.231 ]
+  Non-TMH => Stats [ tp=12329 tn=2150 fp=3675 fn=666 recall=0.949 precision=0.77 specificity=0.369 f-measure=0.85 accuracy=0.769 error_rate=0.231 ]
+  Outside => Stats [ tp=0 tn=18820 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  Inside  => Stats [ tp=0 tn=18820 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+
+  
+Transmembrane+Solubles
+Overall statistics: (NEW, included TMH/NON_TMH in windowEdge)
+  TMH     => Stats [ tp=2145 tn=115285 fp=2088 fn=3680 recall=0.368 precision=0.507 specificity=0.982 f-measure=0.427 accuracy=0.953 error_rate=0.047 ]
+  Non-TMH => Stats [ tp=115285 tn=2145 fp=3680 fn=2088 recall=0.982 precision=0.969 specificity=0.368 f-measure=0.976 accuracy=0.953 error_rate=0.047 ]
+  Outside => Stats [ tp=0 tn=123198 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  Inside  => Stats [ tp=0 tn=123198 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  
+Overall statistics: (OLD, excluded TMH/NON_TMH in windowEdge)
+  TMH     => Stats [ tp=2181 tn=115546 fp=1827 fn=3644 recall=0.374 precision=0.544 specificity=0.984 f-measure=0.444 accuracy=0.956 error_rate=0.044 ]
+  Non-TMH => Stats [ tp=115546 tn=2181 fp=3644 fn=1827 recall=0.984 precision=0.969 specificity=0.374 f-measure=0.977 accuracy=0.956 error_rate=0.044 ]
+  Outside => Stats [ tp=0 tn=123198 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]
+  Inside  => Stats [ tp=0 tn=123198 fp=0 fn=0 recall=0.0 precision=0.0 specificity=1.0 f-measure=0.0 accuracy=1.0 error_rate=0.0 ]

@@ -1,5 +1,6 @@
 package predictor.markov.normalizer;
 
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
 import predictor.markov.graph.Edge;
@@ -17,5 +18,5 @@ public abstract class Normalizer {
 	protected DirectedNeighborIndex<Vertex, Edge> neighbor;
 	protected static Logger logger = Logger.getLogger(Normalizer.class);
 
-	protected abstract void compute();
+	protected abstract void compute(List<Edge> list);
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import org.apache.log4j.Logger;
 import predictor.markov.classifier.Classifier;
 import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.classifier.ClassifierModBayes;
@@ -20,6 +21,9 @@ import predictor.markov.classifier.ClassifierRatio;
 import predictor.markov.graph.Edge;
 import predictor.markov.graph.MarkovDirectedWeightedGraph;
 import predictor.markov.graph.Vertex;
+import predictor.markov.normalizer.Normalizer;
+import predictor.markov.normalizer.NormalizerMaxWeightToOne;
+import predictor.markov.normalizer.NormalizerMarkov;
 
 /*
  * @author rgreil
@@ -27,7 +31,7 @@ import predictor.markov.graph.Vertex;
 public class CombinedNet extends Markov {
 
 	public CombinedNet() {
-//		logger = Logger.getLogger(MarkovOneNet.class);
+		logger = Logger.getLogger(CombinedNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
 		wintermute = new MarkovDirectedWeightedGraph();
 		mapVertex = new HashMap<String, Vertex>();
@@ -137,7 +141,7 @@ public class CombinedNet extends Markov {
 
 			}
 
-			{
+
 ////				 weight edges -> auslagern in weighting classes
 //				for (int i = 0; i < listWindowClonedEdges.size(); i++) {
 //					Edge e = listWindowClonedEdges.get(i);
@@ -152,106 +156,55 @@ public class CombinedNet extends Markov {
 //					e.setWeightComplete(e.getWeightTmh() + e.getWeightNonTmh());
 //				}
 
-				//classification
+			//classification
+			//tmh
+			List<Edge> listWindowClonedEdgesTmh = new ArrayList(listWindowClonedEdges);
+			listWindowClonedEdgesTmh.add((Edge) wintermute.getEdge(vertexMiddle, TMH).clone());
 
+			//nonTmh
+			List<Edge> listWindowClonedEdgesNonTmh = new ArrayList(listWindowClonedEdges);
+			listWindowClonedEdgesNonTmh.add((Edge) wintermute.getEdge(vertexMiddle, NON_TMH).clone());
 
-				Classifier crb = new ClassifierBayes(listWindowClonedEdges);
-				Classifier crmb = new ClassifierModBayes(listWindowClonedEdges);
-				Classifier crr = new ClassifierRatio(listWindowClonedEdges);
+			Classifier crbTmh = new ClassifierBayes(listWindowClonedEdgesTmh);
+			Classifier crbNonTmh = new ClassifierBayes(listWindowClonedEdgesNonTmh);
+			Classifier crmbTmh = new ClassifierModBayes(listWindowClonedEdgesTmh);
+			Classifier crmbNonTmh = new ClassifierModBayes(listWindowClonedEdgesNonTmh);
+			Classifier crrTmh = new ClassifierRatio(listWindowClonedEdgesTmh);
+			Classifier crrNonTmh = new ClassifierRatio(listWindowClonedEdgesNonTmh);
 
-				double weightTmh = crmb.getClassRateTmh() * crr.getClassRateTmh();
-				double weightNonTmh = crmb.getClassRateNonTmh() * crr.getClassRateNonTmh();
+			double weightTmh = crmbTmh.getClassRateTmh() * crrTmh.getClassRateTmh();
+			double weightNonTmh = crmbNonTmh.getClassRateNonTmh() * crrNonTmh.getClassRateNonTmh();
 
+				System.out.println("BAYES-TMH: COMPLETE: "+crbTmh.getClassRateComplete());
+				System.out.println("BAYES-TMH: TMH: "+crbTmh.getClassRateTmh());
+				System.out.println("BAYES-TMH: NON_TMH: "+crbTmh.getClassRateNonTmh());
+				System.out.println("BAYES-NON_TMH: COMPLETE: "+crbNonTmh.getClassRateComplete());
+				System.out.println("BAYES-NON_TMH: TMH: "+crbNonTmh.getClassRateTmh());
+				System.out.println("BAYES-NON_TMH: NON_TMH: "+crbNonTmh.getClassRateNonTmh());
 
-
-				//DEBUG
-//				predTmh.add(weightTmh);
-//				predNonTmh.add(weightNonTmh);
-
-				//DEBUG END
+				System.exit(1);
 
 //				//old & not so good, do not use!
-//				Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
-//				if (edgeTmh == null) {
-////					weightTmh *= normalizedMin;
-//					System.out.println("edgeTmh:NULL");
-//				} else {
-//					weightTmh *= edgeTmh.getWeightComplete();
-//				}
+//			Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
+//			weightTmh *= edgeTmh.getWeightComplete();
 //
-//				Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
-//				if (edgeNonTmh == null) {
-////					weightNonTmh *= normalizedMin;
-//					System.out.println("edgeNonTmh:NULL");
-//				} else {
-//					weightNonTmh *= edgeNonTmh.getWeightComplete();
-//				}
+//			Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
+//			weightNonTmh *= edgeNonTmh.getWeightComplete();
 //				//fin & old and not so good
 
-				//new -> schrott
-//				Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
-//				double weightTmh = crr.getClassRateTmh() / crmb.getClassRateTmh();
-//				if (edgeTmh == null) {
-////					weightTmh *= normalizedMin;
-//				} else {
-//					weightTmh = edgeTmh.getWeight()/weightTmh;
-//				}
-//
-//				Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
-//				double weightNonTmh = crr.getClassRateNonTmh() / crmb.getClassRateNonTmh();
-//				if (edgeNonTmh == null) {
-////					weightNonTmh *= normalizedMin;
-//				} else {
-//					weightNonTmh = edgeNonTmh.getWeight()/weightTmh;
-//				}
-				//fin new
 
-				Result predicted = null;
-				if (weightTmh > weightNonTmh) {
-					predicted = Result.TMH;
-				} else if (weightTmh < weightNonTmh) {
-					predicted = Result.NON_TMH;
-				} else {
-					logger.fatal("WARNING: probability for prediction of TMH (" + weightTmh + ") and NON_TMH (" + weightNonTmh + ") are equal. Prediction set to: " + Result.OUTSIDE);
-					predicted = Result.OUTSIDE;
-				}
+			Result predicted = null;
+			if (weightTmh > weightNonTmh) {
+				predicted = Result.TMH;
+			} else if (weightTmh < weightNonTmh) {
+				predicted = Result.NON_TMH;
+			} else {
+				logger.fatal("WARNING: probability for prediction of TMH (" + weightTmh + ") and NON_TMH (" + weightNonTmh + ") are equal. Prediction set to: " + Result.OUTSIDE);
+				predicted = Result.OUTSIDE;
+			}
 
-				{
-					//DEBUG
-
-					Edge edgeTmh = wintermute.getEdge(vertexMiddle, TMH);
-					if (edgeTmh == null) {
-//					weightTmh *= normalizedMin;
-//						System.out.println("edgeTmh:NULL");
-					} else {
-						weightTmh *= edgeTmh.getWeightComplete();
-					}
-
-					Edge edgeNonTmh = wintermute.getEdge(vertexMiddle, NON_TMH);
-					if (edgeNonTmh == null) {
-//					weightNonTmh *= normalizedMin;
-//						System.out.println("edgeNonTmh:NULL");
-					} else {
-						weightNonTmh *= edgeNonTmh.getWeightComplete();
-					}
-
-					if (weightTmh > weightNonTmh) {
-						predWithExtraWeighting.add(Result.TMH);
-					} else if (weightTmh < weightNonTmh) {
-						predWithExtraWeighting.add(Result.NON_TMH);
-					} else {
-						predWithExtraWeighting.add(Result.OUTSIDE);
-					}
-
-
-
-				} //DEBUG END
-
-
-
-
-				if (spMiddle.getRealClass() != predicted) {
-					counterFalsePredicted++;
+			if (spMiddle.getRealClass() != predicted) {
+				counterFalsePredicted++;
 //
 //					System.out.println(sequence.getId() + " -> " + vertexMiddle);
 //					System.out.println("\tcrRatio:Tmh: " + crr.getClassRateTmh());
@@ -271,138 +224,19 @@ public class CombinedNet extends Markov {
 //					System.out.println("\t---> RESULT");
 //					System.out.println("\t---> REAL: " + spMiddle.getRealClass());
 //					System.out.println("\t---> PRED: " + predicted);
-				}
-				//TODO: hier noch iwie die wkeit für TMH / NON_TMH in nem array mitspeichern
-				pred.add(predicted);
 			}
+			pred.add(predicted);
+
 		}
 
-		//TODO: hier nochmal son extra check reinzwiefeln, kA ob das was bringt
-		//postprocessing?
-		//tmh ist ja mindestens so 16-20 stellen lang, daher die ergebnisse angucken
-		//n=nontmh | t=tmh
-		//nnnnnnnnnnnnntnnttttttttntttttttttnnnnnnnnnntnnntntntnnnnnnntnnnnnnnnntttttttnttttttnntnttttttnn
-		//alle ns rauswerfen die so zwischen ts sind, alle ts raushauen, wenn ihre position totaler müll ist
-		//evtl die normale sequenz mit mss nochmal überarbeiten udn anhand davon die stellen gucken wo was sein sollte, bzw.
-		//inwieweit das übereinander passt
-
-
-//		if (counterFalsePredicted >= minWrongPredicted) {
-//			wrongpredicted++;
-//			System.out.println("ID: " + sequence.getId() + " -> at least " + minWrongPredicted + " mispredictions");
-//			//real
-//			System.out.print("\tREAL____: ");
-//			for (Result result : real) {
-//				if (result.equals(Result.NON_TMH)) {
-//					System.out.print(".");
-//				} else {
-//					System.out.print("T");
-//				}
-//			}
-//			System.out.println("");
-//			//pred
-//			System.out.print("\tPRED____: ");
-//			for (Result result : pred) {
-//				if (result.equals(Result.NON_TMH)) {
-//					System.out.print(".");
-//				} else {
-//					System.out.print("T");
-//				}
-//			}
-//			System.out.println("");
-//
-//			//pred weights
-//			System.out.print("\tPRED_wei: ");
-//			for (Result result : predWithExtraWeighting) {
-//				if (result.equals(Result.NON_TMH)) {
-//					System.out.print(".");
-//				} else {
-//					System.out.print("T");
-//				}
-//			}
-//			System.out.println("");
-////
-//			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
-//			nf.setMinimumIntegerDigits(2);
-//			nf.setMaximumIntegerDigits(2);
-//			nf.setMinimumFractionDigits(1);
-//			nf.setMinimumFractionDigits(1);
-
-//			for (Double double1 : predTmh) {
-//				if (double1 > maxTmh) {
-//					maxTmh = double1;
-//				} else if (double1 < minTmh) {
-//					minTmh = double1;
-//				}
-//			}
-//
-//			for (Double double1 : predNonTmh) {
-//				if (double1 > maxNonTmh) {
-//					maxNonTmh = double1;
-//				} else if (double1 < minNonTmh) {
-//					minNonTmh = double1;
-//				}
-//			}
-//
-//			double maxOf = Double.MIN_VALUE;
-//			double minOf = Double.MAX_VALUE;
-//
-//			if (maxNonTmh > maxTmh){
-//				maxOf = maxNonTmh;
-//			} else {
-//				maxOf = maxTmh;
-//			}
-//
-//			if (minNonTmh < minTmh) {
-//				minOf = minNonTmh;
-//			} else {
-//				minOf = minTmh;
-//			}
-//
-//			Double[] arTmh = new Double[1];
-//			Double[] arNonTmh = new Double[1];
-//
-//			arTmh = predTmh.toArray(arTmh);
-//			arNonTmh = predNonTmh.toArray(arNonTmh);
-//
-//
-//			System.out.println("maxOf: "+maxOf);
-//			System.out.println("minOf: "+minOf);
-//
-//			for (int i = 0; i < arTmh.length; i++) {
-//				arTmh[i] = (arTmh[i]-minOf)/(maxOf-minOf);
-//				arNonTmh[i] = (arNonTmh[i]-minOf)/(maxOf-minOf);
-//
-//			}
-
-
-
-		//tmh
-//			System.out.print("\tP(T): ");
-//			for (Double double1 : predTmh) {
-//				System.out.print(nf.format(double1));
-//			}
-//			System.out.println();
-//			//nonTmh
-//			System.out.print("\tP(.): ");
-//			for (Double double1 : predNonTmh) {
-//				System.out.print(nf.format(double1));
-//			}
-//			System.out.println();
-//		}
-//			if (wrongpredicted >= 10) {
-//				System.exit(1);
-//			}
-//		}
-
-		System.out.println(printRealClass("REAL: \t", real));
-		System.out.println(printRealClass("PRED: \t", pred));
-		System.out.println(printHPalgebraicSign("HPas: \t", sequence));
-		System.out.println(printHPvalues("HPval:\t", sequence));
+//		System.out.println(printRealClass("REAL: \t", real));
+//		System.out.println(printRealClass("PRED: \t", pred));
+//		System.out.println(printHPalgebraicSign("HPas: \t", sequence));
+//		System.out.println(printHPvalues("HPval:\t", sequence));
 
 		predictions = pred.toArray(predictions);
 		if (counterFalsePredicted != 0) {
-			logger.info("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
+			logger.trace("FALSE PREDICTION: " + counterFalsePredicted + " (" + ((int) (100d / (double) sequence.length() * counterFalsePredicted)) + "%) (id: " + sequence.getId() + " -> length: " + sequence.length() + ")");
 		}
 		return new GenericPrediction(sequence, predictions);
 	}
@@ -474,7 +308,7 @@ public class CombinedNet extends Markov {
 						windowEdgeList.add(added);
 					}
 				}
-				//link the middle node to the RealClass (OUTSIDE, INSIDE, TMH)
+				//link the middle node to the RealClass (TMH, NON_TMH)
 				logger.trace("SequencePosition: middle " + spMiddle);
 				addEdge(vertexMiddle, spMiddle, null, null, true);
 
@@ -484,26 +318,10 @@ public class CombinedNet extends Markov {
 		trained = true;
 		long end = System.currentTimeMillis();
 		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
-//		Normalizer nhwto = new NormalizerHighestWeighToOne(wintermute);
-//		norm = new NormalizerSumOfWeightsToOne(wintermute);
-//		norm.compute();
+		Normalizer normalizer = new NormalizerMarkov(wintermute);
+//		Normalizer normalizer = new NormalizerMaxWeightToOne(wintermute);
 
-
-		//DEBUG
-//        try {
-//            BufferedWriter bw = new BufferedWriter(new FileWriter(new File("MARKOV_DEBUG.txt")));
-//            for (Vertex vertex : wintermute.vertexSet()) {
-//                bw.write(vertex.toString() + "\n");
-//            }
-//            bw.write("\n\n\n\n\n");
-//            for (Edge edge : wintermute.edgeSet()) {
-//                bw.write(edge.toString() + "\n");
-//            }
-//            bw.flush();
-//            bw.close();
-//        } catch (IOException ex) {
-//            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 		pruneNotUsedVertices();
+		addFinalMissingNullEdges();
 	}
 }

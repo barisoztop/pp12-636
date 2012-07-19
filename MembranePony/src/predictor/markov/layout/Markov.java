@@ -35,7 +35,7 @@ import predictor.markov.normalizer.Normalizer;
  */
 public abstract class Markov implements Predictor {
 
-	protected final static Logger logger = Logger.getLogger(Markov.class);
+	protected static Logger logger = Logger.getLogger(Markov.class);
 	protected Map<String, Vertex> mapVertex;
 	protected MarkovDirectedWeightedGraph wintermute;
 	protected Normalizer norm;
@@ -73,18 +73,18 @@ public abstract class Markov implements Predictor {
 
 	protected enum SpecialVertex {
 
-		TMH,
-		NON_TMH,
-		//        OUTSIDE,
-		//        INSIDE,
-		GECONNYSE,
+		FINAL_TMH,
+		FINAL_NON_TMH,
+		//        FINAL_OUTSIDE,
+		//        FINAL_INSIDE,
+		FINAL_GECONNYSE,
 		NULL
 	};
-	protected final Vertex TMH = new Vertex(SpecialVertex.TMH, SpecialVertex.NULL, Double.NaN);
-	protected final Vertex NON_TMH = new Vertex(SpecialVertex.NON_TMH, SpecialVertex.NULL, Double.NaN);
+	protected final Vertex TMH = new Vertex(SpecialVertex.FINAL_TMH, SpecialVertex.NULL, Double.NaN);
+	protected final Vertex NON_TMH = new Vertex(SpecialVertex.FINAL_NON_TMH, SpecialVertex.NULL, Double.NaN);
 //    protected final Vertex OUTSIDE = new Vertex(SpecialVertex.OUTSIDE, SpecialVertex.NULL, Double.NaN);
 //    protected final Vertex INSIDE = new Vertex(SpecialVertex.INSIDE, SpecialVertex.NULL, Double.NaN);
-	protected final Vertex GECONNYSE = new Vertex(SpecialVertex.GECONNYSE, SpecialVertex.NULL, Double.NaN);
+	protected final Vertex GECONNYSE = new Vertex(SpecialVertex.FINAL_GECONNYSE, SpecialVertex.NULL, Double.NaN);
 
 	//methods from Predictor interface
 	@Override
@@ -106,12 +106,27 @@ public abstract class Markov implements Predictor {
 			}
 		}
 
-
 		for (String string : toBeRemoved) {
 			mapVertex.remove(string);
 		}
 		long end = System.currentTimeMillis();
 		logger.info("-> " + counter + " vertices in " + (end - start) + " ms");
+	}
+
+	protected final void addFinalMissingNullEdges() {
+		for (Vertex vertex : mapVertex.values()) {
+			Edge tmh = wintermute.addEdge(vertex, TMH);
+			if (tmh != null) {
+				tmh.setWeightComplete(1);
+				tmh.setWeightTmh(1);
+			}
+
+			Edge nonTmh = wintermute.addEdge(vertex, NON_TMH);
+			if (nonTmh != null) {
+				nonTmh.setWeightComplete(1);
+				nonTmh.setWeightNonTmh(1);
+			}
+		}
 	}
 
 	@Override
