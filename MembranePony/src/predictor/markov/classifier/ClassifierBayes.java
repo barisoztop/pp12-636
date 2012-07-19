@@ -1,5 +1,6 @@
 package predictor.markov.classifier;
 
+import data.Constants;
 import java.util.List;
 import org.apache.log4j.Logger;
 import predictor.markov.graph.Edge;
@@ -33,14 +34,28 @@ public final class ClassifierBayes extends Classifier {
 				continue;
 			}
 			//complete
-			aComplete *= edge.getWeightComplete();
-			bComplete *= (1 - edge.getWeightComplete());
+			double complete = edge.getWeightComplete();
+			aComplete *= complete;
+			if (complete == 1d) {
+				complete = Constants.MIN_EDGE_WEIGHT;
+			}
+			bComplete *= (1 - complete);
+
 			//tmh
-			aTmh *= edge.getWeightTmh();
-			bTmh *= (1 - edge.getWeightTmh());
+			double tmh = edge.getWeightTmh();
+			aTmh *= tmh;
+			if (tmh == 1d) {
+				tmh = Constants.MIN_EDGE_WEIGHT;
+			}
+			bTmh *= (1 - tmh);
+
 			//nonTmh
-			aNonTmh *= edge.getWeightNonTmh();
-			bNonTmh *= (1 - edge.getWeightNonTmh());
+			double nonTmh = edge.getWeightNonTmh();
+			aNonTmh *= nonTmh;
+			if (nonTmh == 1d) {
+				nonTmh = Constants.MIN_EDGE_WEIGHT;
+			}
+			bNonTmh *= (1 - nonTmh);
 		}
 
 		classRateComplete = aComplete / (aComplete + bComplete);

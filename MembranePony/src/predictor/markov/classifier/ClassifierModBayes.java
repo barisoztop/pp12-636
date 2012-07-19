@@ -21,17 +21,27 @@ public final class ClassifierModBayes extends Classifier {
 	protected void compute() {
 		long start = System.currentTimeMillis();
 
-		double weightSumAll = 0d;
-		double weightSumTmh = 0d;
-		double weightSumNonTmh = 0d;
+//		double weightSumAll = 0d;
+//		double weightSumTmh = 0d;
+//		double weightSumNonTmh = 0d;
+
+		double weightSumAll = 1d;
+		double weightSumTmh = 1d;
+		double weightSumNonTmh = 1d;
 
 		for (Edge edge : listEdge) {
 			if (edge == null) {
 				continue;
 			}
-			weightSumAll += edge.getWeightComplete();
-			weightSumTmh += edge.getWeightTmh();
-			weightSumNonTmh += edge.getWeightNonTmh();
+			double complete = edge.getWeightComplete();
+			double tmh = edge.getWeightTmh();
+			double nonTmh = edge.getWeightNonTmh();
+//			weightSumAll += complete;
+//			weightSumTmh += tmh;
+//			weightSumNonTmh += nonTmh;
+			weightSumAll *= complete;
+			weightSumTmh *= tmh;
+			weightSumNonTmh *= nonTmh;
 		}
 
 

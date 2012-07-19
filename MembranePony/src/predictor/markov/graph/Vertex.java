@@ -19,34 +19,10 @@ public class Vertex {
 	private final Double hydrophobocity;
 //    private final int windowPos;
 	private final String id;
-	private Map<String, List<Edge[]>> windows;
-	//    private int realClassInside = 0;
-//    private int realClassOutside = 0;
-//    private int realClassTmh = 0;
-//    private int realClassNonTmh = 0;
+//	private Map<String, List<Edge[]>> windows;
 
-//    public Vertex(Enum aminoacid, Enum sse, Double hydrophobocity, int windowPos) {
-//        //aminoAcid:Sting
-//        this.aminoacid = aminoacid.toString().intern();
-//        String tmp = this.aminoacid;
-//
-//        //secondaryStructure:String
-//        this.sse = sse.toString().intern();
-//        tmp += ":" + this.sse;
-//
-//        //hydrophobocity:Double
-//        this.hydrophobocity = hydrophobocity;
-//        tmp += ":" + this.hydrophobocity.toString().intern();
-//
-//        //windowPosition:int
-//        this.windowPos = windowPos;
-//        tmp += ":" + this.windowPos;
-//
-//        //create internal id
-//        id = tmp;
-//    }
 	public Vertex(Enum aminoacid, Enum sse, Double hydrophobocity) {
-		windows = new HashMap<String, List<Edge[]>>();
+//		windows = new HashMap<String, List<Edge[]>>();
 
 		//aminoAcid:String
 		this.aminoacid = aminoacid.toString().intern();
@@ -65,7 +41,8 @@ public class Vertex {
 	}
 
 	public Vertex(String aminoacid, String sse, Double hydrophobocity) {
-		windows = new HashMap<String, List<Edge[]>>();
+//		windows = new HashMap<String, List<Edge[]>>();
+
 		//aminoAcid:String
 		this.aminoacid = aminoacid.intern();
 		String tmp = this.aminoacid;
@@ -121,63 +98,26 @@ public class Vertex {
 		return sse;
 	}
 
-	public void addWindowEdge(Edge[] windowEdge) {
-		String query = "";
-		for (Edge edge : windowEdge) {
-			query+=edge.getSource().toString()+edge.getTarget().toString();
-		}
-		if (windows.containsKey(query)) {
-			windows.get(query).add(windowEdge);
-		} else {
-			List<Edge[]> list = new ArrayList<Edge[]>();
-			list.add(windowEdge);
-			windows.put(query, list);
-		}
-	}
+//	public void addWindowEdge(Edge[] windowEdge) {
+//		String query = "";
+//		for (Edge edge : windowEdge) {
+//			query+=edge.getSource().toString()+edge.getTarget().toString();
+//		}
+//		if (windows.containsKey(query)) {
+//			windows.get(query).add(windowEdge);
+//		} else {
+//			List<Edge[]> list = new ArrayList<Edge[]>();
+//			list.add(windowEdge);
+//			windows.put(query, list);
+//		}
+//	}
+//
+//	public Map<String, List<Edge[]>> getWindowEdge() {
+//		return windows;
+//	}
+//
+//	public List<Edge[]> getWindowEdge(String key) {
+//		return windows.get(key);
+//	}
 
-	public Map<String, List<Edge[]>> getWindowEdge() {
-		return windows;
-	}
-
-	public List<Edge[]> getWindowEdge(String key) {
-		return windows.get(key);
-	}
-
-//    public String getId() {
-//        return id;
-//    }
-//    public int getWindowPos() {
-//        return windowPos;
-//    }
-//    public int getRealClassInside() {
-//        return realClassInside;
-//    }
-//
-//    public void setRealClassInside(int realClassInside) {
-//        this.realClassInside = realClassInside;
-//    }
-//
-//    public int getRealClassNonTmh() {
-//        return realClassNonTmh;
-//    }
-//
-//    public void setRealClassNonTmh(int realClassNonTmh) {
-//        this.realClassNonTmh = realClassNonTmh;
-//    }
-//
-//    public int getRealClassOutside() {
-//        return realClassOutside;
-//    }
-//
-//    public void setRealClassOutside(int realClassOutside) {
-//        this.realClassOutside = realClassOutside;
-//    }
-//
-//    public int getRealClassTmh() {
-//        return realClassTmh;
-//    }
-//
-//    public void setRealClassTmh(int realClassTmh) {
-//        this.realClassTmh = realClassTmh;
-//    }
 }
