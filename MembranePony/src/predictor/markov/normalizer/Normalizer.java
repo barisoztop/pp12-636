@@ -4,7 +4,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.jgrapht.alg.DirectedNeighborIndex;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 
 /**
@@ -14,7 +14,7 @@ import predictor.markov.graph.Vertex;
 public abstract class Normalizer {
 
 
-	protected MarkovDirectedWeightedGraph graph;
+	protected MarkovDirectedGraph graph;
 	protected DirectedNeighborIndex<Vertex, Edge> neighbor;
 	protected static Logger logger = Logger.getLogger(Normalizer.class);
 

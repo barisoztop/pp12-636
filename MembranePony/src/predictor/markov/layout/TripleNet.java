@@ -16,7 +16,7 @@ import java.util.List;
 import predictor.markov.classifier.Classifier;
 import predictor.markov.classifier.ClassifierBayes;
 import predictor.markov.graph.Edge;
-import predictor.markov.graph.MarkovDirectedWeightedGraph;
+import predictor.markov.graph.MarkovDirectedGraph;
 import predictor.markov.graph.Vertex;
 import predictor.markov.normalizer.Normalizer;
 import predictor.markov.normalizer.NormalizerMarkov;
@@ -30,7 +30,7 @@ public class TripleNet extends Markov {
 	public TripleNet() {
 //		logger = Logger.getLogger(TripleNet.class);
 		logger.info("spawning new " + this.getClass().getSimpleName());
-		wintermute = new MarkovDirectedWeightedGraph();
+		wintermute = new MarkovDirectedGraph();
 		mapVertex = new HashMap<String, Vertex>();
 	}
 
