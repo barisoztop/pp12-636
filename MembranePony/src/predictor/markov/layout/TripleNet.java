@@ -59,7 +59,7 @@ public class TripleNet extends Base {
 		}
 
 		double value_hp = HP_MIN;
-		while (value_hp < HP_MAX) {
+		while (value_hp <= HP_MAX) {
 			//hp = the hydrophobocity value from min to max
 			tmp = new Vertex(SpecialVertex.NULL, SpecialVertex.NULL, round(value_hp));
 			logger.trace("created vertex: " + tmp);

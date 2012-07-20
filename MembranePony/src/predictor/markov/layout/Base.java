@@ -1,6 +1,7 @@
 package predictor.markov.layout;
 
 import data.Constants;
+import data.SSE;
 import interfaces.Prediction;
 import interfaces.Predictor;
 import interfaces.Result;
@@ -255,6 +256,9 @@ public abstract class Base implements Predictor {
 
 	protected final Edge getEdgeOfWindowPos(Vertex source, Vertex target, int windowPos) {
 		List<Edge> allEdges = new ArrayList<Edge>(wintermute.getAllEdges(source, target));
+		if (allEdges == null) {
+			return null;
+		}
 		for (Edge edge : allEdges) {
 			if (edge.getWindowPos() == windowPos) {
 				return edge;
@@ -424,6 +428,29 @@ public abstract class Base implements Predictor {
 		} else {
 			return null;
 		}
+	}
+
+	public final String printAA(String prefix, Sequence seq) {
+		StringBuilder sb = new StringBuilder(prefix);
+		for (SequencePosition sp : seq.getSequence()) {
+			sb.append(sp.getAminoAcid().toString());
+		}
+		return sb.toString();
+	}
+
+	public final String printSSE(String prefix, Sequence seq) {
+		StringBuilder sb = new StringBuilder(prefix);
+		for (SequencePosition sp : seq.getSequence()) {
+			String sse = sp.getSecondaryStructure().toString().toLowerCase();
+			if (sse.equals("helix")) {
+				sb.append("H");
+			} else if (sse.equals("coil")) {
+				sb.append("c");
+			} else {
+				sb.append("_");
+			}
+		}
+		return sb.toString();
 	}
 
 	public final String printRealClass(String prefix, List<Result> values) {

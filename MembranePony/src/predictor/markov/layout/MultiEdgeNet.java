@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package predictor.markov.layout;
 
 import data.AminoAcid;
@@ -145,7 +141,7 @@ public class MultiEdgeNet extends Base {
 		long end = System.currentTimeMillis();
 		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
 
-		pruneNotUsedVertices();
+//		pruneNotUsedVertices();
 		addFinalMissingNullEdges();
 	}
 
@@ -238,11 +234,13 @@ public class MultiEdgeNet extends Base {
 			//classification
 			//tmh
 			List<Edge> listWindowClonedEdgesTmh = new ArrayList(listWindowClonedEdges);
-			listWindowClonedEdgesTmh.add((Edge) wintermute.getEdge(vertexMiddle, TMH).clone());
+//			listWindowClonedEdgesTmh.add((Edge) wintermute.getEdge(vertexMiddle, TMH).clone());
+			listWindowClonedEdgesTmh.add(wintermute.getEdge(vertexMiddle, TMH));
 
 			//nonTmh
 			List<Edge> listWindowClonedEdgesNonTmh = new ArrayList(listWindowClonedEdges);
-			listWindowClonedEdgesNonTmh.add((Edge) wintermute.getEdge(vertexMiddle, NON_TMH).clone());
+//			listWindowClonedEdgesNonTmh.add((Edge) wintermute.getEdge(vertexMiddle, NON_TMH).clone());
+			listWindowClonedEdgesNonTmh.add(wintermute.getEdge(vertexMiddle, NON_TMH));
 
 			Classifier crbTmh = new ClassifierBayes(listWindowClonedEdgesTmh);
 			Classifier crbNonTmh = new ClassifierBayes(listWindowClonedEdgesNonTmh);
@@ -260,7 +258,7 @@ public class MultiEdgeNet extends Base {
 //			System.out.println("BAYES-NON_TMH: COMPLETE: " + crbNonTmh.getClassRateComplete());
 //			System.out.println("BAYES-NON_TMH: TMH: " + crbNonTmh.getClassRateTmh());
 //			System.out.println("BAYES-NON_TMH: NON_TMH: " + crbNonTmh.getClassRateNonTmh());
-
+//			System.exit(1);
 
 			//new NEW NEW NEW TEST only summup
 //			weightTmh = 0;
@@ -341,10 +339,13 @@ public class MultiEdgeNet extends Base {
 
 		}
 
-//		System.out.println(printRealClass("REAL: \t", real));
-//		System.out.println(printRealClass("PRED: \t", pred));
-//		System.out.println(printHPalgebraicSign("HPas: \t", sequence));
+//		System.out.println(printRealClass("REAL:\t", real));
+//		System.out.println(printRealClass("PRED:\t", pred));
+//		System.out.println(printAA("AA  :\t", sequence));
+//		System.out.println(printSSE("SSE :\t", sequence));
+//		System.out.println(printHPalgebraicSign("HPas:\t", sequence));
 //		System.out.println(printHPvalues("HPval:\t", sequence));
+
 
 		predictions = pred.toArray(predictions);
 		if (counterFalsePredicted != 0) {

@@ -32,6 +32,9 @@ public class Test {
 		Base m = new MultiEdgeNet();
 //		Base m = new CombinedNet();
 //        Markov m = new TripleNet();
+		System.out.println("TODO:");
+		System.out.println("MultiEdgeNet: dynamische fallback kante, abhängig vom gewicht der anderer kanten");
+		System.out.println("stepping ausbauen, da wir eh kein HP window haben, daher pro vertex nur HP von AA");
 
 		File dataFolderOld = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
 		File dataFolder = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset");
@@ -54,26 +57,33 @@ public class Test {
 //        m.save(new File("markovNEWREALDATA.txt"));
 		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
-
-		Collections.shuffle(Arrays.asList(sequences));
-
+//
+//		Collections.shuffle(Arrays.asList(sequences));
+//
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 		EvaluationResult result = eval.evaluate();
 		System.out.println(result);
 
 //		int seqNumber = 74;
-//		int seqNumber = 23;
-//		int seqNumber = 53;
-//		int seqNumber = 43;
-
-//		sequences = new Sequence[] {sequences[74]};
+////		int seqNumber = 23;
+////		int seqNumber = 53;
+////		int seqNumber = 43;
+//
+////		sequences = new Sequence[] {sequences[74]};
 //		m.train(sequences);
-//		m.save(new File("MULTIEDGE.txt"));
-//		m = new MultiEdgeNet();
-//		m.load(new File("MULTIEDGE.txt"));
-
-//		m.predict(sequences[seqNumber]);
-//		System.out.println(sequences[seqNumber].getId() + " - > is SOLUBLE " + !sequences[seqNumber].containsTransmembrane());
+////		m.save(new File("MULTIEDGE.txt"));
+////		m = new MultiEdgeNet();
+////		m.load(new File("MULTIEDGE.txt"));
+//
+//		m.predict(sequences[12]);
+//		m.predict(sequences[22]);
+//		m.predict(sequences[32]);
+//		m.predict(sequences[42]);
+//		m.predict(sequences[52]);
+//		m.predict(sequences[62]);
+//		m.predict(sequences[72]);
+//		m.predict(sequences[82]);
+////		System.out.println(sequences[seqNumber].getId() + " - > is SOLUBLE " + !sequences[seqNumber].containsTransmembrane());
 //		MssMod mss = new MssMod();
 //		int length = sequences[seqNumber].length();
 //		List<MssResult> al = mss.mss(sequences[seqNumber], 1);
