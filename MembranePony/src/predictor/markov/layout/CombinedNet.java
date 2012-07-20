@@ -134,7 +134,7 @@ public class CombinedNet extends Base {
 		long end = System.currentTimeMillis();
 		logger.info("-> " + wintermute.edgeSet().size() + " edges in " + (end - start) + " ms");
 
-		pruneNotUsedVertices();
+//		pruneNotUsedVertices();
 		addFinalMissingNullEdges();
 	}
 
@@ -222,11 +222,11 @@ public class CombinedNet extends Base {
 			//classification
 			//tmh
 			List<Edge> listWindowClonedEdgesTmh = new ArrayList(listWindowClonedEdges);
-			listWindowClonedEdgesTmh.add((Edge) wintermute.getEdge(vertexMiddle, TMH).clone());
+//			listWindowClonedEdgesTmh.add((Edge) wintermute.getEdge(vertexMiddle, TMH).clone());
 
 			//nonTmh
 			List<Edge> listWindowClonedEdgesNonTmh = new ArrayList(listWindowClonedEdges);
-			listWindowClonedEdgesNonTmh.add((Edge) wintermute.getEdge(vertexMiddle, NON_TMH).clone());
+//			listWindowClonedEdgesNonTmh.add((Edge) wintermute.getEdge(vertexMiddle, NON_TMH).clone());
 
 			Classifier crbTmh = new ClassifierBayes(listWindowClonedEdgesTmh);
 			Classifier crbNonTmh = new ClassifierBayes(listWindowClonedEdgesNonTmh);
