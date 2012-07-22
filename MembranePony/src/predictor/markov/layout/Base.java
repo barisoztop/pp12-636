@@ -14,7 +14,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,42 +50,16 @@ public abstract class Base implements Predictor {
 	protected static final double HP_MAX = 6.0d;
 	protected boolean trained = false;
 	protected boolean windowNew = false;
-//	protected double[] windowVertexWeight = new double[]{
-//				1,
-//		2,
-//		3,
-//		4,
-//		5,
-//		6,
-//		7,
-//		8,
-//		9,
-//		10,
-//		10,
-//		9,
-//		8,
-//		7,
-//		6,
-//		5,
-//		4,
-//		3,
-//		2,
-//		1,
-//	};
 
 	protected enum SpecialVertex {
 
 		FINAL_TMH,
 		FINAL_NON_TMH,
-		//        FINAL_OUTSIDE,
-		//        FINAL_INSIDE,
 		FINAL_GECONNYSE,
 		NULL
 	};
 	protected final Vertex TMH = new Vertex(SpecialVertex.FINAL_TMH, SpecialVertex.NULL, Double.NaN);
 	protected final Vertex NON_TMH = new Vertex(SpecialVertex.FINAL_NON_TMH, SpecialVertex.NULL, Double.NaN);
-//    protected final Vertex OUTSIDE = new Vertex(SpecialVertex.OUTSIDE, SpecialVertex.NULL, Double.NaN);
-//    protected final Vertex INSIDE = new Vertex(SpecialVertex.INSIDE, SpecialVertex.NULL, Double.NaN);
 	protected final Vertex GECONNYSE = new Vertex(SpecialVertex.FINAL_GECONNYSE, SpecialVertex.NULL, Double.NaN);
 
 	//methods from Predictor interface
@@ -214,7 +190,7 @@ public abstract class Base implements Predictor {
 
 	protected abstract void addVertices();
 
-	protected final void pruneNotUsedVertices() {
+	protected final void pruneVerticesWithoutEdges() {
 		long start = System.currentTimeMillis();
 		logger.info("pruning vertices with no edges");
 		List<String> toBeRemoved = new ArrayList<String>();
@@ -236,7 +212,7 @@ public abstract class Base implements Predictor {
 
 	protected final void addFinalMissingNullEdges() {
 		for (Vertex vertex : mapVertex.values()) {
-			Edge e = getEdgeOfWindowPos(vertex, TMH, Constants.WINDOW_MIDDLE_POSITION);
+			Edge e = getEdgeOfWindowPos(wintermute, vertex, TMH, Constants.WINDOW_MIDDLE_POSITION);
 			if (e == null) {
 				Edge tmh = wintermute.addEdge(vertex, TMH);
 				tmh.setWeightComplete(1);
@@ -244,7 +220,7 @@ public abstract class Base implements Predictor {
 				tmh.setWindowPos(Constants.WINDOW_MIDDLE_POSITION);
 			}
 
-			e = getEdgeOfWindowPos(vertex, NON_TMH, Constants.WINDOW_MIDDLE_POSITION);
+			e = getEdgeOfWindowPos(wintermute, vertex, NON_TMH, Constants.WINDOW_MIDDLE_POSITION);
 			if (e == null) {
 				Edge nonTmh = wintermute.addEdge(vertex, NON_TMH);
 				nonTmh.setWeightComplete(1);
@@ -254,12 +230,13 @@ public abstract class Base implements Predictor {
 		}
 	}
 
-	protected final Edge getEdgeOfWindowPos(Vertex source, Vertex target, int windowPos) {
-		List<Edge> allEdges = new ArrayList<Edge>(wintermute.getAllEdges(source, target));
-		if (allEdges == null) {
+	protected final Edge getEdgeOfWindowPos(AbstractBaseGraph<Vertex, Edge> graph, Vertex source, Vertex target, int windowPos) {
+		Set<Edge> setAllEdges = graph.getAllEdges(source, target);
+		if (setAllEdges == null) {
 			return null;
 		}
-		for (Edge edge : allEdges) {
+		List<Edge> listAllEdges = new ArrayList<Edge>(setAllEdges);
+		for (Edge edge : listAllEdges) {
 			if (edge.getWindowPos() == windowPos) {
 				return edge;
 			}
@@ -304,7 +281,7 @@ public abstract class Base implements Predictor {
 		}
 
 		//get edge
-		Edge edge = getEdgeOfWindowPos(source, target, windowPos);
+		Edge edge = getEdgeOfWindowPos(wintermute, source, target, windowPos);
 
 		if (edge == null) {
 			if (!wintermute.containsVertex(source)) {
