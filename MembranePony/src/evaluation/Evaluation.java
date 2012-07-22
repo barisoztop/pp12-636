@@ -200,7 +200,7 @@ public class Evaluation {
 
 
 				//log the result for this sequence with the EvaluationRun object
-				run.logSequence(test, tmh, nontmh, inside, outside);
+				run.logSequence(test, result, tmh, nontmh, inside, outside);
 //				System.out.println(run);
 
 			}
