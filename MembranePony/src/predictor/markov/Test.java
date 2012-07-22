@@ -36,9 +36,9 @@ public class Test {
 		System.out.println("MultiEdgeNet: dynamische fallback kante, abhängig vom gewicht der anderer kanten");
 		System.out.println("stepping ausbauen, da wir eh kein HP window haben, daher pro vertex nur HP von AA");
 
-		File dataFolderOld = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
-		File dataFolder = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset");
-		File structFile = new File("E:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\imp_struct.fasta");
+		File dataFolderOld = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\impOutput");
+		File dataFolder = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset");
+		File structFile = new File("Z:\\CONFIG\\coding\\data\\protein_prediction\\lean-dataset\\imp_struct.fasta");
 		int table = Hydrophobicity.KYTE_DOOLITTLE;
 
 //        seqs = DataReader.readSequences(dataFolder, structFile, table);
@@ -57,9 +57,9 @@ public class Test {
 //        m.save(new File("markovNEWREALDATA.txt"));
 		Sequence[] sequences = DataReader.readAll(dataFolder, table, false);
 //		Sequence[] sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
-//
-//		Collections.shuffle(Arrays.asList(sequences));
-//
+////
+////		Collections.shuffle(Arrays.asList(sequences));
+////
 		Evaluation eval = new Evaluation(sequences, new MarkovPredictorFactory());
 		EvaluationResult result = eval.evaluate();
 		System.out.println(result);
@@ -69,10 +69,13 @@ public class Test {
 ////		int seqNumber = 53;
 ////		int seqNumber = 43;
 //
-////		sequences = new Sequence[] {sequences[74]};
+//		sequences = new Sequence[] {sequences[74]};
+		m.train(sequences);
+//		m.save(new File("2012-07-21_MultiEdge_TM+SOLUBLES.txt"));
+//		m = new MultiEdgeNet();
+//		sequences = DataReader.readTransmembranes(dataFolderOld, structFile, table, false);
 //		m.train(sequences);
-////		m.save(new File("MULTIEDGE.txt"));
-////		m = new MultiEdgeNet();
+//		m.save(new File("2012-07-21_MultiEdge_TM.txt"));
 ////		m.load(new File("MULTIEDGE.txt"));
 //
 //		m.predict(sequences[12]);

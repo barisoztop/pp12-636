@@ -188,7 +188,7 @@ public class TripleNet extends Base {
 //        } catch (IOException ex) {
 //            java.util.logging.Logger.getLogger(Markov.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-		pruneNotUsedVertices();
+		pruneVerticesWithoutEdges();
 	}
 
 	@Override
@@ -371,12 +371,12 @@ public class TripleNet extends Base {
 //						+"\n\tNON_TMH: "+hpNonTmh);
 
 
-				double aaT = normalizedMin;
-				double aaN = normalizedMin;
-				double sseT = normalizedMin;
-				double sseN = normalizedMin;
-				double hpT = normalizedMin;
-				double hpN = normalizedMin;
+				double aaT = 1d;
+				double aaN = 1d;
+				double sseT = 1d;
+				double sseN = 1d;
+				double hpT = 1d;
+				double hpN = 1d;
 
 
 				if (aaTmh != null) {
