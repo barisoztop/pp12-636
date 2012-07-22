@@ -96,7 +96,7 @@ public class ReadStruct {
 	 * @param classString
 	 * @return
 	 */
-	private static Result[] parseClassesString(String classString) {
+	public static Result[] parseClassesString(String classString) {
 
 		/*
 		 * The type of REGION can be 1, 2, B, H, C, I, L and U for

@@ -1,5 +1,6 @@
 package evaluation;
 
+import interfaces.Prediction;
 import interfaces.Sequence;
 
 import java.util.LinkedList;
@@ -36,8 +37,8 @@ public class EvaluationRun {
 	 * @param outside true/false positive/negative counts for class outside
 	 * @param nontmh
 	 */
-	public void logSequence(Sequence sequence, Statistics transmembrane, Statistics nontmh, Statistics inside, Statistics outside) {
-		testCases.add(new TestCase(sequence, transmembrane, nontmh, inside, outside));
+	public void logSequence(Sequence sequence, Prediction result, Statistics transmembrane, Statistics nontmh, Statistics inside, Statistics outside) {
+		testCases.add(new TestCase(sequence, result, transmembrane, nontmh, inside, outside));
 	}
 
 	@Override

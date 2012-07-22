@@ -15,11 +15,24 @@ public enum Result {
 	/**
 	 * inside transmembrane helix
 	 */
-	TMH,
+	TMH("T"),
 
 
-	NON_TMH;
+	NON_TMH(".");
 
 
 
+	private String singleLetterCode = "?";
+	
+	
+	private Result() {}
+	
+	private Result(String singleLetterCode) {
+		this.singleLetterCode = singleLetterCode;
+	}
+	
+	public String getSingleLetterCode() {
+		return singleLetterCode;
+	}
+	
 }

@@ -325,7 +325,7 @@ public class DataReader {
 //		System.out.println();
 	}
 
-	private static String readProfRdb(String path, String sequence) throws IOException {
+	public static String readProfRdb(String path, String sequence) throws IOException {
 		String profrdb = Helpers.readFile(path);
 
 		String[] lines = profrdb.split("\n");

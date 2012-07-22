@@ -5,7 +5,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.geom.QuadCurve2D;
@@ -24,100 +23,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
 
 public class CircleGraph {
 
-	public static class Viewer extends JFrame {
 
-		public Viewer(Image img) {
-			setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-			add(new JScrollPane(new JLabel(new ImageIcon(img))));
-
-			pack();
-			setVisible(true);
-		}
-	}
-
-	public static class Vertex {
-
-		public final float hp;
-		public final String aa;
-		public final String sse;
-
-		public Vertex(String aa, String sse, float hp) {
-			this.aa = aa;
-			this.sse = sse;
-			this.hp = hp;
-		}
-
-		public Vertex(String vertexCode) {
-			String[] parts = vertexCode.split(":");
-			aa = parts[0];
-			sse = parts[1];
-			hp = Float.parseFloat(parts[2]);
-		}
-
-		@Override
-		public boolean equals(Object arg0) {
-			if (arg0 instanceof Vertex) {
-				Vertex v = (Vertex) arg0;
-				return v.hp == hp && v.aa.equals(aa) && v.sse.equals(sse);
-			}
-			return super.equals(arg0);
-		}
-
-		@Override
-		public int hashCode() {
-			return (aa + ":" + sse + ":" + hp).hashCode();
-		}
-
-		@Override
-		public String toString() {
-			return aa + " : " + sse + " : " + hp;
-		}
-	}
-
-	public static class Edge {
-
-		public final Vertex from, to;
-		public final int[] weights;
-
-		public Edge(Vertex from, Vertex to, int[] weights) {
-			this.from = from;
-			this.to = to;
-			this.weights = weights;
-		}
-
-		@Override
-		public String toString() {
-			return from + " => " + to;
-		}
-	}
-
-	public static class VertexComparator implements Comparator<Vertex> {
-
-		@Override
-		public int compare(Vertex o1, Vertex o2) {
-			if (o1.aa.compareTo(o2.aa) == 0) {
-				if (o1.sse.compareTo(o2.sse) == 0) {
-					if (o1.hp == o2.hp) {
-						return 0;
-					} else {
-						return (int) (o2.hp - o1.hp);
-					}
-				} else {
-					return o1.sse.compareTo(o2.sse);
-				}
-			} else {
-				return o1.aa.compareTo(o2.aa);
-			}
-		}
-	}
 	private static LinkedList<Edge> edgeList;
 	private static TreeSet<Vertex> verticesList;
 	private static int[] maxWeights = {Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
@@ -125,8 +34,8 @@ public class CircleGraph {
 	public static void read() throws IOException {
 		String path = "C:\\Users\\Felix\\Dropbox\\ProteinPrediction\\report\\transmembrane_2012-07-15.txt";
 
-		verticesList = new TreeSet<CircleGraph.Vertex>(new VertexComparator());
-		edgeList = new LinkedList<CircleGraph.Edge>();
+		verticesList = new TreeSet<Vertex>(new VertexComparator());
+		edgeList = new LinkedList<Edge>();
 
 		BufferedReader br = new BufferedReader(new FileReader(path));
 
@@ -218,7 +127,7 @@ public class CircleGraph {
 		int fontSize = 20;
 		int minStrokeThickness = 1;
 		int maxStrokeThickness = 3;
-		int lightestColor = 180;
+		int lightestColor = 200;
 
 		//g.drawOval(50, 50, 900, 900);
 
@@ -280,14 +189,17 @@ public class CircleGraph {
 //			System.out.println(to);
 
 			g.setComposite(makeComposite(0.5f));
-
-			int color = (lightestColor - (int) (e.weights[1] / (float) (maxWeights[1] / (float) lightestColor)));
-
-			int thickness = (int) Math.round(minStrokeThickness
-							+ (maxStrokeThickness - minStrokeThickness)
-							* (Math.pow(e.weights[1], 2) / Math.pow(maxWeights[1], 2)));
-
-
+			
+			int color = (lightestColor- (int) (e.weights[1] / (float)(maxWeights[1]/(float)lightestColor)));
+			
+//			color = (int) (lightestColor - ( (lightestColor)* ( Math.pow(e.weights[1], 2) / Math.pow(maxWeights[1], 2) ) ));
+			
+			int thickness = (int) Math.round( minStrokeThickness + 
+					(maxStrokeThickness-minStrokeThickness) 
+						* ( Math.pow(e.weights[1], 2) / Math.pow(maxWeights[1], 2) ) );
+			
+			
+			
 
 			g.setStroke(new BasicStroke(thickness));
 

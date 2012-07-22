@@ -7,9 +7,17 @@ package data;
  */
 public enum SSE {
 
-    Helix,
-    Sheet,
-    Coil;
+    Helix("H"),
+    Sheet("E"),
+    Coil("C");
+    
+    
+    private String singleLetter;
+
+
+	private SSE(String singleLetter) {
+		this.singleLetter = singleLetter;
+	}
     
     
     public static SSE forProfRdb(char profRdb) {
@@ -20,6 +28,11 @@ public enum SSE {
     	
     	default: throw(new IllegalArgumentException("'"+profRdb+"' does not seem to be a proper ProfRdb SSE identifier (HEL)"));
     	}
+    }
+    
+    
+    public String getSingleLetterCode() {
+    	return singleLetter;
     }
 
 }
