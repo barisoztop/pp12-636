@@ -13,29 +13,33 @@ public class CLI {
 	
 	
 	
-	@Option(name="-buildmodel", usage="Build model from given training data.")
+	@Option(name="-buildmodel", usage="Build model from given training data and save it to the specified" +
+			"output file.")
 	private boolean buildModel;
 
-	@Option(name="-evaluate", usage="Evaluate model using given test data")
+	@Option(name="-evaluate", usage="Evaluate model using given test data and write the results to the" +
+			"specified outout file")
 	private boolean evaluate;
 
-	@Option(name="-output",usage="output to this file",metaVar="<FILE>")
+	@Option(name="-output",usage="Output to this file",metaVar="<FILE>")
 	private File output = null;
 	
 	@Option(name="-train",usage="Training set; either a directory that adheres strictly to the structure of the " +
-			"set supplied to us, or a fasta file with alignments (like imp_struct.fasta); PredictProtein " +
+			"set supplied to us (imp_struct.fasta and sol.fasta will be used), or a fasta file with alignments " +
+			"(like imp_struct.fasta); PredictProtein " +
 			"output folders must lie in the same directory or in a subdirectory named impOutput or solOutput, else " +
 			"PredictProtein will be invoked to compute fresh ones.",
-			metaVar="<DIR>")
+			metaVar="<FILE/DIR>")
 	private File train = null; 
 
-	@Option(name="-test",usage="Test set; must be a fasta file with alignments like imp_struct.fasta, PredictProtein " +
+	@Option(name="-test",usage="Test set; this must be a fasta file with alignments like imp_struct.fasta, PredictProtein " +
 			"output folders must lie in the same directory or in a subdirectory named impOutput or solOutput, else " +
 			"PredictProtein will be invoked to compute fresh ones.",
-			metaVar="<DIR>")
+			metaVar="<FILE>")
 	private File test = null;
 	
-	@Option(name="-modelfile",usage="Model file",metaVar="<DIR>")
+	@Option(name="-modelfile",usage="Model file to be used with -test. Must be a file generated via -buildmodel."
+			,metaVar="<FILE>")
 	private File modelFile = null;
 	
 	
