@@ -32,8 +32,9 @@ public class CircleGraph {
 	private static int[] maxWeights = {Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
 
 	public static void read() throws IOException {
-		String path = "C:\\Users\\Felix\\Dropbox\\ProteinPrediction\\report\\transmembrane_2012-07-15.txt";
-
+//		String path = "C:\\Users\\Felix\\Dropbox\\ProteinPrediction\\report\\transmembrane_2012-07-15.txt";
+		String path = "C:\\Users\\Felix\\Dropbox\\ProteinPrediction\\report\\2012-07-21_MultiEdge_TM.txt";
+		
 		verticesList = new TreeSet<Vertex>(new VertexComparator());
 		edgeList = new LinkedList<Edge>();
 
@@ -61,9 +62,9 @@ public class CircleGraph {
 			verticesList.add(from);
 			verticesList.add(to);
 
-			int[] weights = new int[3];
+			int[] weights = new int[4];
 			String[] weightsStrs = matcher.group(1).split(":");
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 4; i++) {
 				weights[i] = Integer.parseInt(weightsStrs[i]);
 			}
 
@@ -180,7 +181,8 @@ public class CircleGraph {
 		for (Edge e : edgeList) {
 //			System.out.println(e);
 
-			System.out.println(e.weights[1]);
+			System.out.print(e.weights[1]+";\t");
+			if(e.weights[1]==0) continue;
 
 			Point from = vertices.get(e.from);
 			Point to = vertices.get(e.to);
@@ -188,7 +190,7 @@ public class CircleGraph {
 //			System.out.println(from);
 //			System.out.println(to);
 
-			g.setComposite(makeComposite(0.5f));
+			g.setComposite(makeComposite(0.8f));
 			
 			int color = (lightestColor- (int) (e.weights[1] / (float)(maxWeights[1]/(float)lightestColor)));
 			
@@ -203,12 +205,37 @@ public class CircleGraph {
 
 			g.setStroke(new BasicStroke(thickness));
 
-			g.setColor(new Color(color, color, color));
+			int shift = (int) ((255-lightestColor)*((e.weights[3]-11)/10f));
+			
+			Color colorObj;
+			
+			System.out.print(e.weights[3]+" => shift "+shift+", color "+color+" 255-shift "+(255-shift));
+			
+			
+			
+//			if(shift>0)
+//				g.setColor(new Color(255-shift, color, color));
+//			else if(shift<0)
+//				g.setColor(new Color(color, 255+shift, color));
+//			else
+//				g.setColor(new Color(color, color, color));
+			
+			g.setColor(new Color(color, color, 255));
 
+			System.out.println(" => color "+g.getColor());
+			
+			if(e.weights[3]-11!=0) continue;
+			
 			QuadCurve2D.Float curve = new QuadCurve2D.Float(from.x, from.y, originX, originY, to.x, to.y);
 			g.draw(curve);
 		}
 
+		g.setComposite(makeComposite(1f));
+		for (Point p : vertices.values()) {
+			g.setColor(Color.black);
+			g.fillOval((int) p.x - dotRadius / 2, (int) p.y - dotRadius / 2, dotRadius, dotRadius);
+		}
+		
 //		for(Vertex k : vertices.keySet()) {
 //			for(Vertex l : vertices.keySet()) {
 //				if(ruediger.nextInt(50000)>49958) {
