@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project MembranePony with libraries in sub-folder">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp.jar">
+            <manifest>
+                <attribute name="Main-Class" value="main.Main"/>
+                <attribute name="Class-Path" value=". pp_lib/jgrapht-jdk1.6.jar pp_lib/neuroph-2.6.jar pp_lib/commons-math3-3.0.jar pp_lib/apache-log4j-log4j-1.2.16.jar pp_lib/junit-4.10.jar pp_lib/args4j-2.0.16.jar"/>
+            </manifest>
+            <fileset dir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/bin"/>
+        </jar>
+        <delete dir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <mkdir dir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/jgrapht-jdk1.6.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/neuroph-2.6.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/commons-math3-3.0.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/apache-log4j-log4j-1.2.16.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/junit-4.10.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+        <copy file="C:/Users/Felix/Desktop/pp12 repo/MembranePony/lib/args4j-2.0.16.jar" todir="C:/Users/Felix/Desktop/pp12 repo/MembranePony/build_jar/pp_lib"/>
+    </target>
+</project>
